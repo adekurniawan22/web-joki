@@ -1,15 +1,15 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
+frontend/node_modules
+frontend/.pnp
 .pnp.js
 
 # testing
-/coverage
+frontend/coverage
 
 # production
-/build
+frontend/build
 
 # misc
 .DS_Store
@@ -25,9 +25,9 @@ yarn-error.log*
 backend/.phpunit.cache
 backend/node_modules
 backend/public/build
-/public/hot
-/public/storage
-/storage/*.key
+backend/public/hot
+backend/public/storage
+backend/storage/*.key
 backend/vendor
 .env
 .env.backup
@@ -37,7 +37,7 @@ Homestead.yaml
 auth.json
 npm-debug.log
 yarn-error.log
-/.fleet
-/.idea
-/.vscode
+backend/.fleet
+backend/.idea
+backend/.vscode
 
