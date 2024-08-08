@@ -22,6 +22,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# dependencies
+/backend/node_modules
+
 # public directories
 /backend/public/hot
 /backend/public/storage
