@@ -64,14 +64,21 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        $validator = Validator::make($request->all(), [
+        // Tentukan aturan validasi dasar
+        $rules = [
             'nama' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:user,email,' . $id,
-            'password' => 'sometimes|required|string|min:8',
             'no_hp' => 'sometimes|required|string',
             'alamat' => 'sometimes|required|string',
             'role' => 'sometimes|required|in:owner,admin,penjoki',
-        ]);
+        ];
+
+        // Tambahkan aturan validasi untuk password hanya jika password diisi
+        if ($request->filled('password')) {
+            $rules['password'] = 'required|string|min:8';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json([
@@ -80,7 +87,22 @@ class UserController extends Controller
             ], 422);
         }
 
-        $user->update(array_filter($request->all()));
+        // Ambil data yang akan diupdate
+        $dataToUpdate = $request->only([
+            'nama',
+            'email',
+            'no_hp',
+            'alamat',
+            'role'
+        ]);
+
+        // Update password jika diisi
+        if ($request->filled('password')) {
+            $dataToUpdate['password'] = bcrypt($request->input('password'));
+        }
+
+        // Update user dengan data yang ada
+        $user->update($dataToUpdate);
 
         return response()->json([
             'message' => 'User updated successfully',
