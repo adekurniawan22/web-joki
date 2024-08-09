@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import {
     CCol,
@@ -12,12 +12,12 @@ import {
     CCardHeader,
     CCardBody,
 } from '@coreui/react'
-import { Link } from 'react-router-dom'
-import config from '../../src/config'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import config from '../../config'
+import { toast } from 'react-toastify'
 
-const FormUser = () => {
+const EditUser = () => {
+    const { id } = useParams()
     const [validated, setValidated] = useState(false)
     const [formData, setFormData] = useState({
         nama: '',
@@ -33,13 +33,26 @@ const FormUser = () => {
         no_hp: '',
     })
 
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(`${config.apiUrl}/users/${id}`)
+                setFormData(response.data)
+            } catch (error) {
+                toast.error('Terjadi kesalahan saat mengambil data pengguna.')
+                navigate('/users')
+            }
+        }
+        fetchData()
+    }, [id, navigate])
+
     const validateField = (name, value) => {
         let error = ''
         switch (name) {
             case 'password':
-                if (value === '') {
-                    error = 'Password tidak boleh kosong'
-                } else if (value.length < 8) {
+                if (value && value.length < 8) {
                     error = 'Password harus minimal 8 karakter'
                 }
                 break
@@ -81,7 +94,8 @@ const FormUser = () => {
         event.preventDefault()
         event.stopPropagation()
 
-        const isPasswordValid = validateField('password', formData.password)
+        const isPasswordValid =
+            formData.password === '' || validateField('password', formData.password)
         const isEmailValid = validateField('email', formData.email)
         const isNoHpValid = validateField('no_hp', formData.no_hp)
 
@@ -89,16 +103,17 @@ const FormUser = () => {
             setValidated(true)
             return
         }
+
         try {
-            await axios.post(`${config.apiUrl}/users`, formData, {
+            await axios.put(`${config.apiUrl}/users/${id}`, formData, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
             })
-
-            toast.success('Data berhasil ditambahkan!')
+            toast.success('Data berhasil diperbarui!')
+            navigate('/users')
         } catch (error) {
-            toast.error('Terjadi kesalahan saat menambahkan data.')
+            toast.error('Terjadi kesalahan saat memperbarui data.')
         }
     }
 
@@ -169,14 +184,12 @@ const FormUser = () => {
                                     type="password"
                                     name="password"
                                     id="password"
-                                    placeholder="Masukkan Password"
+                                    placeholder="Masukkan Password (kosongkan jika tidak diubah)"
                                     feedbackInvalid={
-                                        errors.password ||
-                                        'Password tidak boleh kosong dan harus minimal 8 karakter'
+                                        errors.password || 'Password harus minimal 8 karakter'
                                     }
                                     label="Password"
-                                    required
-                                    minLength={8}
+                                    minLength={8} // Menambahkan minLength
                                     onChange={handleChange}
                                     value={formData.password}
                                     onInvalid={(e) => e.target.setCustomValidity(errors.password)}
@@ -225,10 +238,9 @@ const FormUser = () => {
                         </CForm>
                     </CCardBody>
                 </CCard>
-                <ToastContainer />
             </CCol>
         </CRow>
     )
 }
 
-export default FormUser
+export default EditUser

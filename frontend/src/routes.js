@@ -50,14 +50,16 @@ const Modals = React.lazy(() => import('./views/notifications/modals/Modals'))
 const Toasts = React.lazy(() => import('./views/notifications/toasts/Toasts'))
 
 const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
-const FormUser = React.lazy(() => import('./views/FormUser'))
-const UserList = React.lazy(() => import('./views/UserList'))
+const AddUser = React.lazy(() => import('./views/User/AddUser'))
+const EditUser = React.lazy(() => import('./views/User/EditUser'))
+const UserList = React.lazy(() => import('./views/User/UserList'))
 
 const routes = [
-    { path: '/', name: 'Dashboard', element: Dashboard },
-    { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+    { path: '/', name: '', element: Dashboard },
+    { path: '/dashboard', name: '', element: Dashboard },
     { path: '/users', name: 'User', element: UserList },
-    { path: '/users/create', name: 'Add User', element: FormUser },
+    { path: '/users/create', name: 'Tambah User', element: AddUser },
+    { path: '/users/edit/:id', name: 'Edit User', element: EditUser },
     { path: '/theme', name: 'Theme', element: Colors, exact: true },
     { path: '/theme/colors', name: 'Colors', element: Colors },
     { path: '/theme/typography', name: 'Typography', element: Typography },

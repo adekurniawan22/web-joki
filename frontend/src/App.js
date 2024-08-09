@@ -1,6 +1,8 @@
 import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
@@ -49,6 +51,7 @@ const App = () => {
                     <Route path="*" name="Home" element={<DefaultLayout />} />
                 </Routes>
             </Suspense>
+            <ToastContainer />
         </BrowserRouter>
     )
 }
