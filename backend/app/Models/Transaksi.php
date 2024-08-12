@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Transaksi extends Model
 {
@@ -11,7 +12,15 @@ class Transaksi extends Model
 
     // Kolom-kolom yang dapat diisi secara massal
     protected $fillable = [
-        'tipe', 'judul', 'deskripsi', 'tgl_terima', 'tgl_selesai', 'status', 'harga', 'created_by', 'take_by',
+        'tipe',
+        'judul',
+        'deskripsi',
+        'tgl_terima',
+        'tgl_selesai',
+        'status',
+        'harga',
+        'created_by',
+        'take_by',
     ];
 
     // Mendefinisikan tipe data kolom yang perlu di-cast
@@ -36,5 +45,25 @@ class Transaksi extends Model
     public function files()
     {
         return $this->hasMany(FileTransaksi::class, 'id_transaksi', 'id')->select(['id', 'id_transaksi', 'keterangan', 'file']);
+    }
+
+    public static function topPenjoki($limit = null)
+    {
+        $query = DB::table('user')
+            ->select('user.id', 'user.nama', 'user.email', DB::raw('COALESCE(COUNT(transaksi.id), 0) as transaksi_count'))
+            ->leftJoin('transaksi', 'user.id', '=', 'transaksi.take_by')
+            ->where('user.role', 'penjoki')
+            ->where(function ($query) {
+                $query->where('transaksi.status', 'selesai')
+                    ->orWhereNull('transaksi.status');
+            })
+            ->groupBy('user.id', 'user.nama', 'user.email')
+            ->orderBy('transaksi_count', 'desc');
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        return $query->get();
     }
 }

@@ -9,7 +9,12 @@ class User extends Model
     protected $table = 'user';
 
     protected $fillable = [
-        'nama', 'email', 'password', 'no_hp', 'alamat', 'role',
+        'nama',
+        'email',
+        'password',
+        'no_hp',
+        'alamat',
+        'role',
     ];
 
     protected $hidden = [
@@ -25,5 +30,11 @@ class User extends Model
     public function takenTransaksi()
     {
         return $this->hasMany(Transaksi::class, 'take_by');
+    }
+
+    // Fungsi untuk menghitung jumlah pengguna berdasarkan role
+    public static function countByRole($role)
+    {
+        return self::where('role', $role)->count();
     }
 }
