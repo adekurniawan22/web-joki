@@ -80,9 +80,9 @@ class TransaksiSeeder extends Seeder
         $faker = Faker::create('id_ID');
 
         // Define the number of transactions for each status
-        $pendingCount = 3;
-        $dikerjakanCount = 4;
-        $selesaiCount = 3;
+        $pendingCount = 10;
+        $dikerjakanCount = 5;
+        $selesaiCount = 50;
 
         // Create transactions with statuses
         $statuses = array_merge(
@@ -94,11 +94,13 @@ class TransaksiSeeder extends Seeder
         // Shuffle statuses to ensure random distribution
         shuffle($statuses);
 
-        // Get user IDs for foreign key
-        $userIds = DB::table('user')->pluck('id')->toArray();
+        // Get user IDs for 'admin' and 'penjoki' roles
+        $adminIds = DB::table('user')->where('role', 'admin')->pluck('id')->toArray();
+        $penjokiIds = DB::table('user')->where('role', 'penjoki')->pluck('id')->toArray();
 
         foreach ($statuses as $index => $status) {
-            $takeBy = $status === 'selesai' ? $faker->randomElement($userIds) : null;
+            $createdBy = $faker->randomElement($adminIds);
+            $takeBy = $status === 'selesai' ? $faker->randomElement($penjokiIds) : null;
 
             // Generate harga dalam kelipatan 500
             $minPrice = 50000; // Harga minimum
@@ -117,7 +119,7 @@ class TransaksiSeeder extends Seeder
                 'tgl_selesai' => $tglSelesai ? $tglSelesai->format('Y-m-d H:i:s') : null,
                 'status' => $status,
                 'harga' => $harga,
-                'created_by' => $faker->randomElement($userIds),
+                'created_by' => $createdBy,
                 'take_by' => $takeBy,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -136,7 +138,7 @@ class FileTransaksiSeeder extends Seeder
         // Ambil ID transaksi yang ada dari tabel transaksi
         $transaksiIds = DB::table('transaksi')->pluck('id')->toArray();
 
-        foreach (range(1, 10) as $index) {
+        foreach (range(1, 30) as $index) {
             DB::table('file_transaksi')->insert([
                 'id_transaksi' => $faker->randomElement($transaksiIds),
                 'keterangan' => $faker->sentence,
