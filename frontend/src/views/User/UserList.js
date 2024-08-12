@@ -146,7 +146,7 @@ const UserList = () => {
 
     // Define custom styles for DataTable
     const customStyles = {
-        headRow: {
+        headCells: {
             style: {
                 backgroundColor: '#f8f9fa',
                 color: '#333',
@@ -201,6 +201,7 @@ const UserList = () => {
                             </CAlert>
                         ) : (
                             <DataTable
+                                className="hover"
                                 columns={columns}
                                 data={filteredUsers}
                                 pagination

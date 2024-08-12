@@ -1,25 +1,6 @@
 import React from 'react'
-import {
-    CAvatar,
-    CBadge,
-    CDropdown,
-    CDropdownDivider,
-    CDropdownHeader,
-    CDropdownItem,
-    CDropdownMenu,
-    CDropdownToggle,
-} from '@coreui/react'
-import {
-    cilBell,
-    cilCreditCard,
-    cilCommentSquare,
-    cilEnvelopeOpen,
-    cilFile,
-    cilLockLocked,
-    cilSettings,
-    cilTask,
-    cilUser,
-} from '@coreui/icons'
+import { CAvatar, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle } from '@coreui/react'
+import { cilSettings, cilUser } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 
 import avatar8 from './../../assets/images/avatars/8.jpg'
@@ -31,9 +12,6 @@ const AppHeaderDropdown = () => {
                 <CAvatar src={avatar8} size="md" />
             </CDropdownToggle>
             <CDropdownMenu className="pt-0" placement="bottom-end">
-                <div className="d-flex justify-content-center align-items-center p-3">
-                    Ade | Admin
-                </div>
                 <CDropdownItem href="#">
                     <CIcon icon={cilUser} className="me-2" />
                     Profile
