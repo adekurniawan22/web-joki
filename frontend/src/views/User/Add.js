@@ -16,7 +16,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import config from '../../config'
 import { toast } from 'react-toastify'
 
-const FormUser = () => {
+const FormTambahUser = () => {
     const [validated, setValidated] = useState(false)
     const [formData, setFormData] = useState({
         nama: '',
@@ -231,4 +231,4 @@ const FormUser = () => {
     )
 }
 
-export default FormUser
+export default FormTambahUser

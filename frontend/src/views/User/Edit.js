@@ -16,7 +16,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import config from '../../config'
 import { toast } from 'react-toastify'
 
-const EditUser = () => {
+const FormEditUser = () => {
     const { id } = useParams()
     const [validated, setValidated] = useState(false)
     const [formData, setFormData] = useState({
@@ -243,4 +243,4 @@ const EditUser = () => {
     )
 }
 
-export default EditUser
+export default FormEditUser

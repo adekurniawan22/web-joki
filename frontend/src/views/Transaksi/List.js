@@ -256,11 +256,11 @@ const TransaksiList = () => {
                             <DataTable
                                 className="hover"
                                 columns={columns}
-                                data={sortedTransaksi} // Gunakan data yang sudah diurutkan
+                                data={sortedTransaksi}
                                 pagination
                                 highlightOnHover
-                                customStyles={customStyles} // Apply custom styles
-                                onRowClicked={handleRowClick} // Add onRowClicked handler
+                                customStyles={customStyles}
+                                onRowClicked={handleRowClick}
                             />
                         )}
                     </CCardBody>
@@ -276,7 +276,11 @@ const TransaksiList = () => {
                         <CButton color="secondary" onClick={() => setModalVisible(false)}>
                             Batal
                         </CButton>
-                        <CButton color="danger" onClick={() => handleDelete(selectedTransaksi)}>
+                        <CButton
+                            color="danger"
+                            className="text-light"
+                            onClick={() => handleDelete(selectedTransaksi)}
+                        >
                             Hapus
                         </CButton>
                     </CModalFooter>

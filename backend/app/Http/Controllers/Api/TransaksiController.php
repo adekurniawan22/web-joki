@@ -36,7 +36,7 @@ class TransaksiController extends Controller
             'status' => 'required|string|in:pending,dikerjakan,selesai',
             'harga' => 'required|integer',
             'created_by' => 'required|exists:user,id',
-            'take_by' => 'nullable|exists:user,id',
+            // 'take_by' => 'nullable|exists:user,id',
         ]);
 
         if ($validator->fails()) {
@@ -56,7 +56,7 @@ class TransaksiController extends Controller
             'status' => $request->status,
             'harga' => $request->harga,
             'created_by' => $request->created_by,
-            'take_by' => $request->take_by ?? null,
+            // 'take_by' => $request->take_by ?? null,
         ]);
 
         // Return response
@@ -77,8 +77,7 @@ class TransaksiController extends Controller
             'tgl_selesai' => 'nullable|date',
             'status' => 'required|string|in:pending,dikerjakan,selesai',
             'harga' => 'required|integer',
-            'created_by' => 'required|exists:user,id',
-            'take_by' => 'nullable|exists:user,id',
+            // 'take_by' => 'nullable|exists:user,id',
         ]);
 
         if ($validator->fails()) {
@@ -100,8 +99,7 @@ class TransaksiController extends Controller
             'tgl_selesai' => $request->tgl_selesai,
             'status' => $request->status,
             'harga' => $request->harga,
-            'created_by' => $request->created_by,
-            'take_by' => $request->take_by ?? null,
+            // 'take_by' => $request->take_by ?? null,
         ]);
 
         // Return response

@@ -212,8 +212,8 @@ const Dashboard = () => {
                             >
                                 {topPenjokis.map((penjoki, index) => (
                                     <li key={penjoki.id}>
-                                        {index + 1 + ' '}.{penjoki.nama} ({penjoki.transaksi_count}{' '}
-                                        Transaksi)
+                                        {index + 1 + '. '}
+                                        {penjoki.nama} ({penjoki.transaksi_count} Transaksi)
                                     </li>
                                 ))}
                             </ul>
