@@ -297,6 +297,9 @@ const TransaksiList = () => {
                                     <strong>ID:</strong> {detailTransaksi.id}
                                 </p>
                                 <p>
+                                    <strong>Created By:</strong> {detailTransaksi.creator.nama}
+                                </p>
+                                <p>
                                     <strong>Tipe:</strong> {detailTransaksi.tipe}
                                 </p>
                                 <p>
@@ -317,6 +320,13 @@ const TransaksiList = () => {
                                     <strong>Status:</strong>{' '}
                                     {capitalizeFirstLetter(detailTransaksi.status)}
                                 </p>
+                                {detailTransaksi.take_by ? (
+                                    <p>
+                                        <strong>Take By:</strong> {detailTransaksi.taker.nama}
+                                    </p>
+                                ) : (
+                                    ''
+                                )}
                                 <p>
                                     <strong>Harga:</strong> {formatRupiah(detailTransaksi.harga)}
                                 </p>
@@ -331,11 +341,18 @@ const TransaksiList = () => {
                                             {detailTransaksi.files.map((file) => (
                                                 <li key={file.id}>
                                                     <a
-                                                        href={`${config.apiUrl}/files/${file.file}`}
+                                                        href={`${config.apiBiasa}/storage/${file.file}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
+                                                        style={{
+                                                            display: 'inline',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            maxWidth: '100%',
+                                                            overflowWrap: 'break-word',
+                                                        }}
                                                     >
-                                                        {file.file}
+                                                        {'file-no-' + file.id}
                                                     </a>
                                                     {' (' + file.keterangan + ')'}
                                                 </li>
