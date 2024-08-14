@@ -1,18 +1,27 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\TransaksiController;
-use App\Http\Controllers\Api\FileTransaksiController;
-use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\{
+    UserController,
+    TransaksiController,
+    FileTransaksiController,
+    DashboardController,
+};
 
-Route::apiResources([
-    'users' => UserController::class,
-    'transaksi' => TransaksiController::class,
-    'file-transaksi' => FileTransaksiController::class,
-]);
+// Rute login dan logout tidak memerlukan token
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
 
+// Rute yang memerlukan token
+Route::middleware('api.token')->group(function () {
+    Route::apiResources([
+        'users' => UserController::class,
+        'transaksi' => TransaksiController::class,
+        'file-transaksi' => FileTransaksiController::class,
+    ]);
 
-Route::get('/count-user-by-role', [DashboardController::class, 'getCountByRole']);
-Route::get('/top-penjoki', [DashboardController::class, 'topPenjoki']);
-Route::get('/tes', [DashboardController::class, 'index']);
+    Route::get('/count-user-by-role', [DashboardController::class, 'getCountByRole']);
+    Route::get('/top-penjoki', [DashboardController::class, 'topPenjoki']);
+    Route::get('/tes', [DashboardController::class, 'index']);
+});

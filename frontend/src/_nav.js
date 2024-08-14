@@ -1,3 +1,5 @@
+// src/_nav.js
+
 import React from 'react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -6,8 +8,10 @@ import {
     cilSwapHorizontal,
     cilUser,
     cilAccountLogout,
+    cilHistory,
+    cilStar,
 } from '@coreui/icons'
-import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
+import { CNavItem, CNavTitle } from '@coreui/react'
 
 const _nav = [
     {
@@ -27,6 +31,18 @@ const _nav = [
         name: 'Transaksi',
         to: '/transaksi',
         icon: <CIcon icon={cilSwapHorizontal} customClassName="nav-icon" />,
+    },
+    {
+        component: CNavItem,
+        name: 'Riwayat Transaksi',
+        to: '/riwayat-transaksi',
+        icon: <CIcon icon={cilHistory} customClassName="nav-icon" />,
+    },
+    {
+        component: CNavItem,
+        name: 'Leaderboard',
+        to: '/leaderboard',
+        icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
     },
     {
         component: CNavTitle,

@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import axios from 'axios'
 import {
     CCol,
     CForm,
@@ -15,6 +14,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 import config from '../../config'
 import { toast } from 'react-toastify'
+import axiosInstance from '../../axiosConfig'
 
 const FormTambahUser = () => {
     const [validated, setValidated] = useState(false)
@@ -91,7 +91,7 @@ const FormTambahUser = () => {
             return
         }
         try {
-            await axios.post(`${config.apiUrl}/users`, formData, {
+            await axiosInstance.post(`${config.apiUrl}/users`, formData, {
                 headers: {
                     'Content-Type': 'application/json',
                 },

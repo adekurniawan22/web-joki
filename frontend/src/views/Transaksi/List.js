@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import axiosInstance from '../../axiosConfig'
 import {
     CCol,
     CRow,
@@ -34,7 +34,7 @@ const TransaksiList = () => {
     useEffect(() => {
         const fetchTransaksi = async () => {
             try {
-                const response = await axios.get(`${config.apiUrl}/transaksi`)
+                const response = await axiosInstance.get(`${config.apiUrl}/transaksi`)
                 setTransaksi(response.data)
                 setLoading(false)
             } catch (error) {
@@ -48,7 +48,7 @@ const TransaksiList = () => {
 
     const handleDelete = async (transaksiId) => {
         try {
-            await axios.delete(`${config.apiUrl}/transaksi/${transaksiId}`)
+            await axiosInstance.delete(`${config.apiUrl}/transaksi/${transaksiId}`)
             setTransaksi(transaksi.filter((transaksi) => transaksi.id !== transaksiId))
             toast.success('Transaksi berhasil dihapus!')
         } catch (error) {
@@ -60,7 +60,7 @@ const TransaksiList = () => {
 
     const handleRowClick = async (row) => {
         try {
-            const response = await axios.get(`${config.apiUrl}/transaksi/${row.id}`)
+            const response = await axiosInstance.get(`${config.apiUrl}/transaksi/${row.id}`)
             setDetailTransaksi(response.data) // Set detail data
             setDetailModalVisible(true)
         } catch (error) {

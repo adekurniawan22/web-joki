@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import axiosInstance from '../../axiosConfig'
 import {
     CCol,
     CForm,
@@ -38,7 +38,7 @@ const FormTransaksiEdit = () => {
         // Fetch existing data
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${config.apiUrl}/transaksi/${id}`)
+                const response = await axiosInstance.get(`${config.apiUrl}/transaksi/${id}`)
                 const data = response.data
                 setFormData({
                     ...data,
@@ -102,7 +102,7 @@ const FormTransaksiEdit = () => {
         // Convert harga to integer before sending
 
         try {
-            await axios.put(
+            await axiosInstance.put(
                 `${config.apiUrl}/transaksi/${id}`,
                 {
                     ...formData,

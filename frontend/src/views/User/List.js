@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios'
 import {
     CCol,
     CRow,
@@ -20,6 +19,7 @@ import config from '../../config'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import DataTable from 'react-data-table-component'
+import axiosInstance from '../../axiosConfig'
 
 const UserList = () => {
     const [users, setUsers] = useState([])
@@ -32,7 +32,7 @@ const UserList = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get(`${config.apiUrl}/users`)
+                const response = await axiosInstance.get(`${config.apiUrl}/users`)
                 setUsers(response.data)
                 setLoading(false)
             } catch (error) {
@@ -46,7 +46,7 @@ const UserList = () => {
 
     const handleDelete = async (userId) => {
         try {
-            await axios.delete(`${config.apiUrl}/users/${userId}`)
+            await axiosInstance.delete(`${config.apiUrl}/users/${userId}`)
             setUsers(users.filter((user) => user.id !== userId))
             toast.success('User berhasil dihapus!')
         } catch (error) {

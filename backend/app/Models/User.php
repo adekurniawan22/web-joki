@@ -32,6 +32,11 @@ class User extends Model
         return $this->hasMany(Transaksi::class, 'take_by');
     }
 
+    public function tokens()
+    {
+        return $this->hasMany(ApiToken::class, 'user_id');
+    }
+
     // Fungsi untuk menghitung jumlah pengguna berdasarkan role
     public static function countByRole($role)
     {

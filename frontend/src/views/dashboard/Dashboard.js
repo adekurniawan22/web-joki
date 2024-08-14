@@ -6,6 +6,7 @@ import { cilCloudDownload, cilPeople, cilBadge } from '@coreui/icons'
 import { CChart } from '@coreui/react-chartjs'
 import config from '../../config'
 import { getStyle } from '@coreui/utils'
+import axiosInstance from '../../axiosConfig'
 
 const Dashboard = () => {
     const [userCounts, setUserCounts] = useState({ owner: 0, admin: 0, penjoki: 0 })
@@ -15,11 +16,15 @@ const Dashboard = () => {
         const fetchData = async () => {
             try {
                 // Fetch user counts by role
-                const userCountResponse = await axios.get(`${config.apiUrl}/count-user-by-role`)
+                const userCountResponse = await axiosInstance.get(
+                    `${config.apiUrl}/count-user-by-role`,
+                )
                 setUserCounts(userCountResponse.data)
 
                 // Fetch top penjoki
-                const { data: topPenjokiData } = await axios.get(`${config.apiUrl}/top-penjoki`)
+                const { data: topPenjokiData } = await axiosInstance.get(
+                    `${config.apiUrl}/top-penjoki`,
+                )
                 const topPenjokis = Array.isArray(topPenjokiData.top_penjoki)
                     ? topPenjokiData.top_penjoki
                     : []
@@ -52,7 +57,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         // Ganti URL dengan endpoint API Anda
-        axios
+        axiosInstance
             .get(`${config.apiUrl}/tes`)
             .then((response) => {
                 const { tahun, data } = response.data

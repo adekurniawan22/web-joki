@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import axios from 'axios'
+import axiosInstance from '../../axiosConfig'
 import {
     CCol,
     CForm,
@@ -80,7 +80,7 @@ const FormTambahTransaksi = () => {
         }
 
         try {
-            await axios.post(
+            await axiosInstance.post(
                 `${config.apiUrl}/transaksi`,
                 {
                     ...formData,

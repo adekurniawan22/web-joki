@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import {
     CCol,
     CForm,
@@ -15,6 +14,7 @@ import {
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import config from '../../config'
 import { toast } from 'react-toastify'
+import axiosInstance from '../../axiosConfig'
 
 const FormEditUser = () => {
     const { id } = useParams()
@@ -38,7 +38,7 @@ const FormEditUser = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${config.apiUrl}/users/${id}`)
+                const response = await axiosInstance.get(`${config.apiUrl}/users/${id}`)
                 setFormData(response.data)
             } catch (error) {
                 toast.error('Terjadi kesalahan saat mengambil data pengguna.')
@@ -105,7 +105,7 @@ const FormEditUser = () => {
         }
 
         try {
-            await axios.put(`${config.apiUrl}/users/${id}`, formData, {
+            await axiosInstance.put(`${config.apiUrl}/users/${id}`, formData, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
