@@ -64,9 +64,7 @@ class FileTransaksiController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'id_transaksi' => 'required|exists:transaksi,id',
             'keterangan' => 'required|string',
-            'file' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -85,18 +83,6 @@ class FileTransaksiController extends Controller
         }
 
         $fileTransaksi->keterangan = $request->input('keterangan');
-
-        if ($request->hasFile('file')) {
-            if ($fileTransaksi->file && Storage::disk('public')->exists($fileTransaksi->file)) {
-                Storage::disk('public')->delete($fileTransaksi->file);
-            }
-
-            $file = $request->file('file');
-            $filePath = $file->store('file_transaksi', 'public');
-            $fileTransaksi->file = $filePath;
-        }
-
-        $fileTransaksi->id_transaksi = $request->input('id_transaksi');
         $fileTransaksi->save();
 
         return response()->json([

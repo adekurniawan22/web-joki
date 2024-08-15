@@ -33,8 +33,8 @@ class AuthController extends Controller
 
         // Buat token baru dengan masa berlaku 2 jam
         $token = bin2hex(random_bytes(32));
-        // $expiresAt = Carbon::now('Asia/Jakarta')->addHours(2);
-        $expiresAt = Carbon::now('Asia/Jakarta')->addMinutes(10);
+        $expiresAt = Carbon::now('Asia/Jakarta')->addHours(2);
+        // $expiresAt = Carbon::now('Asia/Jakarta')->addMinutes(10);
 
         ApiToken::create([
             'user_id' => $user->id,

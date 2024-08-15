@@ -1,15 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Formik, Field, Form, ErrorMessage } from 'formik'
 import * as yup from 'yup'
 import axiosInstance from '../../axiosConfig'
 import { NumericFormat } from 'react-number-format'
 import { CCol, CRow, CButton, CCard, CCardHeader, CCardBody } from '@coreui/react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import config from '../../config'
 import { toast } from 'react-toastify'
 import { Col, Row, Form as BootstrapForm } from 'react-bootstrap'
 
-// Validasi harga diubah dari string menjadi number
+// Utility function to convert ISO date to YYYY-MM-DD
+const isoToDateString = (isoString) => {
+    return isoString ? isoString.split('T')[0] : ''
+}
+
+// Utility function to convert YYYY-MM-DD to ISO date
+const dateStringToISO = (dateString) => {
+    return dateString ? new Date(dateString).toISOString() : ''
+}
+
 const getValidationSchema = (showAdditionalFields) => {
     return yup.object().shape({
         tipe: yup.string().required('Tipe tugas harus dipilih'),
@@ -27,29 +36,31 @@ const getValidationSchema = (showAdditionalFields) => {
             ? yup.array().of(
                   yup.object().shape({
                       keterangan: yup.string().required('Keterangan tidak boleh kosong'),
-                      file: yup
-                          .mixed()
-                          .required('File tidak boleh kosong')
-                          .test(
-                              'fileType',
-                              'Hanya file gambar jpg, jpeg, dan png yang diizinkan',
-                              (value) => {
-                                  return ['image/jpeg', 'image/jpg', 'image/png'].includes(
-                                      value.type,
-                                  )
-                              },
-                          ),
+                      file: yup.mixed().when('id', {
+                          is: null,
+                          then: yup
+                              .mixed()
+                              .required('File tidak boleh kosong')
+                              .test(
+                                  'fileType',
+                                  'Hanya file gambar jpg, jpeg, dan png yang diizinkan',
+                                  (value) =>
+                                      ['image/jpeg', 'image/jpg', 'image/png'].includes(
+                                          value?.type,
+                                      ),
+                              ),
+                      }),
                   }),
               )
             : yup.array(),
     })
 }
 
-const FormTambahTransaksi = () => {
+const EditTransaksi = () => {
     const navigate = useNavigate()
+    const { id } = useParams()
     const [showAdditionalFields, setShowAdditionalFields] = useState(false)
-
-    const initialValues = {
+    const [initialValues, setInitialValues] = useState({
         tipe: '',
         judul: '',
         deskripsi: '',
@@ -58,51 +69,111 @@ const FormTambahTransaksi = () => {
         status: '',
         harga: '',
         created_by: '',
-        tambahan: [{ keterangan: '', file: null }], // Initial state for additional fields
-    }
+        tambahan: [{ id: null, keterangan: '', file: null }],
+    })
+
+    useEffect(() => {
+        // Fetch transaction data
+        const fetchTransaksi = async () => {
+            try {
+                const response = await axiosInstance.get(`${config.apiUrl}/transaksi/${id}`)
+                const data = response.data
+
+                // Convert dates
+                const tglTerima = isoToDateString(data.tgl_terima)
+                const tglSelesai = isoToDateString(data.tgl_selesai)
+
+                // Set initial values
+                setInitialValues({
+                    tipe: data.tipe,
+                    judul: data.judul,
+                    deskripsi: data.deskripsi,
+                    tgl_terima: tglTerima,
+                    tgl_selesai: tglSelesai,
+                    status: data.status,
+                    harga: data.harga,
+                    created_by: data.created_by,
+                    tambahan: data.files.map((file) => ({
+                        keterangan: file.keterangan,
+                        file: file.file ? file.file : null,
+                        id: file.id ? file.id : null,
+                    })),
+                })
+
+                // Set checkbox state
+                setShowAdditionalFields(data.files && data.files.length > 0)
+            } catch (error) {
+                toast.error('Terjadi kesalahan saat memuat data.')
+            }
+        }
+
+        fetchTransaksi()
+    }, [id])
 
     const handleSubmit = async (values) => {
         try {
             // Konversi harga
             const hargaInteger = parseInt(values.harga.replace(/[^0-9]/g, ''), 10)
 
+            // Konversi tanggal ke format ISO 8601, termasuk menangani tgl_selesai
+            const updatedValues = {
+                ...values,
+                tgl_terima: dateStringToISO(values.tgl_terima),
+                tgl_selesai: values.tgl_selesai ? dateStringToISO(values.tgl_selesai) : null,
+                harga: hargaInteger,
+            }
+
             // Kirim data transaksi
-            const response = await axiosInstance.post(
-                `${config.apiUrl}/transaksi`,
-                {
-                    ...values,
-                    created_by: 1,
-                    tgl_selesai: values.tgl_selesai ? values.tgl_selesai : null,
-                    harga: hargaInteger,
+            await axiosInstance.put(`${config.apiUrl}/transaksi/${id}`, updatedValues, {
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                },
-            )
-            toast.success('Data berhasil ditambahkan!')
+            })
 
             // Kirim file jika ada
             for (const item of values.tambahan) {
                 if (item.file) {
                     const formData = new FormData()
-                    formData.append('id_transaksi', response.data.data.id)
                     formData.append('keterangan', item.keterangan)
-                    formData.append('file', item.file)
 
-                    // Kirim data file
-                    await axiosInstance.post(`${config.apiUrl}/file-transaksi`, formData, {
-                        headers: {
-                            'Content-Type': 'multipart/form-data',
-                        },
-                    })
+                    if (item.id) {
+                        // Jika item.id ada, kirim hanya keterangan dengan header Content-Type: 'application/json'
+                        await axiosInstance.post(
+                            `${config.apiUrl}/file-transaksi/${item.id}?_method=PUT`,
+                            formData,
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                            },
+                        )
+                    } else {
+                        // Jika item.id tidak ada, kirim id_transaksi, keterangan, dan file dengan header Content-Type: 'multipart/form-data'
+                        formData.append('id_transaksi', id)
+                        formData.append('file', item.file)
+
+                        await axiosInstance.post(`${config.apiUrl}/file-transaksi`, formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data',
+                            },
+                        })
+                    }
                 }
             }
 
+            toast.success('Data berhasil diperbarui!')
             navigate('/transaksi')
         } catch (error) {
-            toast.error('Terjadi kesalahan saat menambahkan data.')
+            toast.error('Terjadi kesalahan saat memperbarui data.')
+        }
+    }
+
+    const handleDeleteFile = async (itemId) => {
+        try {
+            await axiosInstance.delete(`${config.apiUrl}/file-transaksi/${itemId}`)
+            toast.success('File berhasil dihapus!')
+        } catch (error) {
+            toast.error('Terjadi kesalahan saat menghapus file.')
         }
     }
 
@@ -114,17 +185,13 @@ const FormTambahTransaksi = () => {
             enableReinitialize
         >
             {({ touched, errors, setFieldValue, isSubmitting, values }) => {
-                console.log('Formik Values:', values)
                 console.log('Formik Errors:', errors)
-                console.log('Formik Touched:', touched)
-                console.log('isSubmitting:', isSubmitting)
-
                 return (
                     <CRow>
                         <CCol xs={12}>
                             <CCard className="mb-4">
                                 <CCardHeader>
-                                    <strong>Form Transaksi</strong>
+                                    <strong>Edit Transaksi</strong>
                                 </CCardHeader>
                                 <CCardBody>
                                     <Form>
@@ -203,8 +270,8 @@ const FormTambahTransaksi = () => {
                                         </div>
 
                                         {/* Tanggal Terima */}
-                                        <Row className="mb-3">
-                                            <Col md="6">
+                                        <Row>
+                                            <Col md={6}>
                                                 <div className="mb-3">
                                                     <BootstrapForm.Group controlId="validationFormik04">
                                                         <BootstrapForm.Label>
@@ -231,8 +298,7 @@ const FormTambahTransaksi = () => {
                                                 </div>
                                             </Col>
 
-                                            {/* Tanggal Selesai */}
-                                            <Col md="6">
+                                            <Col md={6}>
                                                 <div className="mb-3">
                                                     <BootstrapForm.Group controlId="validationFormik05">
                                                         <BootstrapForm.Label>
@@ -298,7 +364,7 @@ const FormTambahTransaksi = () => {
                                                     name="harga"
                                                     thousandSeparator
                                                     prefix="Rp "
-                                                    value={initialValues.harga}
+                                                    value={values.harga}
                                                     onValueChange={({ value }) =>
                                                         setFieldValue('harga', value)
                                                     }
@@ -325,6 +391,7 @@ const FormTambahTransaksi = () => {
                                                 <BootstrapForm.Check
                                                     type="checkbox"
                                                     label="Apakah ada file tambahan?"
+                                                    checked={showAdditionalFields}
                                                     onChange={(e) => {
                                                         setShowAdditionalFields(e.target.checked)
                                                         if (!e.target.checked) {
@@ -347,7 +414,11 @@ const FormTambahTransaksi = () => {
                                                     onClick={() => {
                                                         setFieldValue('tambahan', [
                                                             ...values.tambahan,
-                                                            { keterangan: '', file: null },
+                                                            {
+                                                                id: null,
+                                                                keterangan: '',
+                                                                file: null,
+                                                            },
                                                         ])
                                                     }}
                                                 >
@@ -362,7 +433,7 @@ const FormTambahTransaksi = () => {
                                                                         controlId={`keterangan-${index}`}
                                                                     >
                                                                         <BootstrapForm.Label>
-                                                                            Keterangan
+                                                                            Keterangan {item.id}
                                                                         </BootstrapForm.Label>
                                                                         <Field
                                                                             type="text"
@@ -383,21 +454,27 @@ const FormTambahTransaksi = () => {
                                                                         <BootstrapForm.Label>
                                                                             File
                                                                         </BootstrapForm.Label>
-                                                                        <input
-                                                                            type="file"
-                                                                            accept="image/*"
-                                                                            onChange={(event) => {
-                                                                                const file =
-                                                                                    event
-                                                                                        .currentTarget
-                                                                                        .files[0]
-                                                                                setFieldValue(
-                                                                                    `tambahan.${index}.file`,
-                                                                                    file,
-                                                                                )
-                                                                            }}
-                                                                            className={`form-control ${touched.tambahan && touched.tambahan[index]?.file && errors.tambahan && errors.tambahan[index]?.file ? 'is-invalid' : ''}`}
-                                                                        />
+                                                                        {item.id ? (
+                                                                            <p>{item.file}</p>
+                                                                        ) : (
+                                                                            <input
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                onChange={(
+                                                                                    event,
+                                                                                ) => {
+                                                                                    const file =
+                                                                                        event
+                                                                                            .currentTarget
+                                                                                            .files[0]
+                                                                                    setFieldValue(
+                                                                                        `tambahan.${index}.file`,
+                                                                                        file,
+                                                                                    )
+                                                                                }}
+                                                                                className={`form-control ${touched.tambahan && touched.tambahan[index]?.file && errors.tambahan && errors.tambahan[index]?.file ? 'is-invalid' : ''}`}
+                                                                            />
+                                                                        )}
                                                                         <ErrorMessage
                                                                             name={`tambahan.${index}.file`}
                                                                             component="div"
@@ -405,12 +482,18 @@ const FormTambahTransaksi = () => {
                                                                         />
                                                                     </BootstrapForm.Group>
                                                                 </div>
-                                                                {values.tambahan.length > 1 && (
+                                                                {(item.id ||
+                                                                    values.tambahan.length > 1) && (
                                                                     <div className="col-12 mt-2">
                                                                         <CButton
                                                                             type="button"
                                                                             color="danger"
                                                                             onClick={() => {
+                                                                                if (item.id) {
+                                                                                    handleDeleteFile(
+                                                                                        item.id,
+                                                                                    )
+                                                                                }
                                                                                 const newAdditionalFields =
                                                                                     values.tambahan.filter(
                                                                                         (_, idx) =>
@@ -457,4 +540,4 @@ const FormTambahTransaksi = () => {
     )
 }
 
-export default FormTambahTransaksi
+export default EditTransaksi
