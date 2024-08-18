@@ -1,7 +1,5 @@
 import React from 'react'
-import { CAvatar, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle } from '@coreui/react'
-import { cilSettings, cilUser } from '@coreui/icons'
-import CIcon from '@coreui/icons-react'
+import { CAvatar, CDropdown, CDropdownToggle } from '@coreui/react'
 
 import avatar8 from './../../assets/images/avatars/8.jpg'
 

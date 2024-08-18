@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react'
-import axios from 'axios'
 import { CButton, CCard, CCardBody, CCol, CRow, CWidgetStatsF } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilCloudDownload, cilPeople, cilBadge } from '@coreui/icons'

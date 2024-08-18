@@ -2,12 +2,12 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
-const AddUser = React.lazy(() => import('./views/User/Add'))
-const EditUser = React.lazy(() => import('./views/User/Edit'))
-const UserList = React.lazy(() => import('./views/User/List'))
-const AddTransaksi = React.lazy(() => import('./views/Transaksi/Add'))
-const EditTransaksi = React.lazy(() => import('./views/Transaksi/Edit'))
-const TransaksiList = React.lazy(() => import('./views/Transaksi/List'))
+const AddUser = React.lazy(() => import('./views/user/Add'))
+const EditUser = React.lazy(() => import('./views/user/Edit'))
+const UserList = React.lazy(() => import('./views/user/List'))
+const AddTransaksi = React.lazy(() => import('./views/transaksi/Add'))
+const EditTransaksi = React.lazy(() => import('./views/transaksi/Edit'))
+const TransaksiList = React.lazy(() => import('./views/transaksi/List'))
 
 const getRoutes = () => {
     const role = localStorage.getItem('role')
