@@ -102,8 +102,7 @@ const TransaksiList = () => {
         {
             name: 'Tipe',
             selector: (row) => row.tipe,
-            width: '10%',
-            center: true,
+            center: `true`,
             sortable: true,
             style: {
                 cursor: 'pointer',
@@ -112,7 +111,6 @@ const TransaksiList = () => {
         {
             name: 'Judul',
             selector: (row) => row.judul,
-            width: '35%',
             wrap: true,
             sortable: true,
             style: {
@@ -126,8 +124,7 @@ const TransaksiList = () => {
                     ? `${formatTanggal(row.tgl_terima)} - ${formatTanggal(row.tgl_selesai)}`
                     : formatTanggal(row.tgl_terima) + ' - proses',
             sortable: true,
-            maxWidth: '20%',
-            center: true,
+            center: `true`,
             style: {
                 cursor: 'pointer',
             },
@@ -136,8 +133,7 @@ const TransaksiList = () => {
             name: 'Harga',
             selector: (row) => formatRupiah(row.harga),
             sortable: true,
-            center: true,
-            maxWidth: '10%',
+            center: `true`,
             style: {
                 cursor: 'pointer',
             },
@@ -146,8 +142,7 @@ const TransaksiList = () => {
             name: 'Status',
             selector: (row) => capitalizeFirstLetter(row.status),
             sortable: true,
-            maxWidth: '5%',
-            center: true,
+            center: `true`,
             style: {
                 cursor: 'pointer',
             },
@@ -155,8 +150,7 @@ const TransaksiList = () => {
 
         {
             name: 'Action',
-            center: true,
-            maxWidth: '15%',
+            center: `true`,
             style: {
                 color: 'white',
                 display: 'flex',

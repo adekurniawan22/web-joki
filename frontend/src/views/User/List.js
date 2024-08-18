@@ -106,13 +106,12 @@ const UserList = () => {
         },
         {
             name: 'Action',
-            center: true,
+            center: `true`,
             style: {
                 color: 'white',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                textAlign: 'center',
             },
             cell: (row) => (
                 <div>

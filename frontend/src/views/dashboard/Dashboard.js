@@ -172,7 +172,7 @@ const Dashboard = () => {
                         color="success"
                         icon={
                             <div className="d-flex align-items-center">
-                                <CIcon icon={cilPeople} height={'3em'} className="h-100" />
+                                <CIcon icon={cilPeople} height={48} className="h-100" />
                                 <span style={{ marginLeft: '8px' }}>Total User </span>
                             </div>
                         }
@@ -199,7 +199,7 @@ const Dashboard = () => {
                         color="warning"
                         icon={
                             <div className="d-flex align-items-center">
-                                <CIcon icon={cilBadge} height={'3em'} className="h-100" />
+                                <CIcon icon={cilBadge} height={48} className="h-100" />
                                 <span style={{ marginLeft: '8px', fontSize: '1.2em' }}>
                                     Top 3 Penjoki
                                 </span>

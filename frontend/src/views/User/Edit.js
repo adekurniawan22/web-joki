@@ -173,7 +173,7 @@ const FormEditUser = () => {
                                     label="Email"
                                     required
                                     onChange={handleChange}
-                                    value={formData.email}
+                                    value={formData.email || ''}
                                     onInvalid={(e) => e.target.setCustomValidity(errors.email)}
                                     onInput={(e) => e.target.setCustomValidity('')}
                                 />
@@ -191,7 +191,7 @@ const FormEditUser = () => {
                                     label="Password"
                                     minLength={8} // Menambahkan minLength
                                     onChange={handleChange}
-                                    value={formData.password}
+                                    value={formData.password || ''}
                                     onInvalid={(e) => e.target.setCustomValidity(errors.password)}
                                     onInput={(e) => e.target.setCustomValidity('')}
                                 />
@@ -207,7 +207,7 @@ const FormEditUser = () => {
                                     required
                                     pattern="^\d+$" // Menambahkan pattern
                                     onChange={handleChange}
-                                    value={formData.no_hp}
+                                    value={formData.no_hp || ''}
                                     onInvalid={(e) => e.target.setCustomValidity(errors.no_hp)}
                                     onInput={(e) => e.target.setCustomValidity('')}
                                 />
