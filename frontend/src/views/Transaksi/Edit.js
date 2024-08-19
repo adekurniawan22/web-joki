@@ -140,12 +140,14 @@ const EditTransaksi = () => {
         const fetchUsers = async () => {
             try {
                 const response = await axiosInstance.get(`${config.apiUrl}/users`)
-                setUsers(
-                    response.data.map((user) => ({
+                // Filter users based on role and map to desired format
+                const filteredUsers = response.data
+                    .filter((user) => user.role === 'penjoki') // Filter users with role 'penjoki'
+                    .map((user) => ({
                         value: user.id,
                         label: user.nama,
-                    })),
-                )
+                    })) // Map to the desired format
+                setUsers(filteredUsers)
             } catch (error) {
                 toast.error('Terjadi kesalahan saat memuat data pengguna.')
             }
@@ -448,7 +450,9 @@ const EditTransaksi = () => {
                                             values.status === 'selesai') && (
                                             <div className="mb-3">
                                                 <BootstrapForm.Group controlId="validationFormikUser">
-                                                    <BootstrapForm.Label>User</BootstrapForm.Label>
+                                                    <BootstrapForm.Label>
+                                                        Take By
+                                                    </BootstrapForm.Label>
                                                     <Select
                                                         options={users}
                                                         onChange={(option) =>
@@ -465,11 +469,31 @@ const EditTransaksi = () => {
                                                         }
                                                         className={`basic-single ${touched.take_by && errors.take_by ? 'is-invalid' : ''} ${touched.take_by && !errors.take_by && !isSubmitting ? 'is-valid' : ''}`}
                                                     />
-                                                    <ErrorMessage
-                                                        name="take_by"
-                                                        component="div"
-                                                        className="invalid-feedback"
-                                                    />
+                                                    <div
+                                                        className={`invalid-feedback ${touched.take_by && touched.take_by ? 'd-block' : ''}`}
+                                                    >
+                                                        <ErrorMessage
+                                                            name="take_by"
+                                                            component="div"
+                                                            className="invalid-feedback"
+                                                            // Use the `render` prop to customize the error message
+                                                            render={(msg) => {
+                                                                // Customize error message if it's the specific one
+                                                                if (
+                                                                    msg === `take_by cannot be null`
+                                                                ) {
+                                                                    return (
+                                                                        <div>
+                                                                            Take By tidak boleh
+                                                                            kosong
+                                                                        </div>
+                                                                    )
+                                                                }
+                                                                // Default rendering for other errors
+                                                                return <div>{msg}</div>
+                                                            }}
+                                                        />
+                                                    </div>
                                                     {!errors.take_by &&
                                                         touched.take_by &&
                                                         !isSubmitting && (

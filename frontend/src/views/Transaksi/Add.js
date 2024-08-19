@@ -87,7 +87,11 @@ const FormTambahTransaksi = () => {
         const fetchUsers = async () => {
             try {
                 const response = await axiosInstance.get(`${config.apiUrl}/users`)
-                setUsers(response.data.map((user) => ({ value: user.id, label: user.nama })))
+                // Filter users based on role
+                const filteredUsers = response.data
+                    .filter((user) => user.role === 'penjoki') // Filter users with role 'penjoki'
+                    .map((user) => ({ value: user.id, label: user.nama })) // Map to the desired format
+                setUsers(filteredUsers)
             } catch (error) {
                 console.error('Error fetching users:', error)
             }
