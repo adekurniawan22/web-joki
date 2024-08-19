@@ -44,6 +44,7 @@ const Login = () => {
             const data = response.data
 
             // Simpan token dan role di localStorage
+            localStorage.setItem('user_id', data.user_id)
             localStorage.setItem('token', data.token)
             localStorage.setItem('role', data.role)
             localStorage.setItem('expires_at', data.expires_at)

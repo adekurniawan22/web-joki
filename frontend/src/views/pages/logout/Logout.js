@@ -25,6 +25,7 @@ const Logout = () => {
                 )
 
                 // Clear localStorage items
+                localStorage.removeItem('user_id')
                 localStorage.removeItem('token')
                 localStorage.removeItem('role')
                 localStorage.removeItem('expires_at')
