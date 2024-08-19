@@ -20,8 +20,10 @@ Route::middleware('api.token')->group(function () {
         'transaksi' => TransaksiController::class,
         'file-transaksi' => FileTransaksiController::class,
     ]);
-
-    Route::get('/count-user-by-role', [DashboardController::class, 'getCountByRole']);
-    Route::get('/top-penjoki', [DashboardController::class, 'topPenjoki']);
-    Route::get('/tes', [DashboardController::class, 'index']);
 });
+
+Route::get('/jumlah-user-by-role', [DashboardController::class, 'getCountByRole']);
+Route::get('/top-penjoki', [DashboardController::class, 'topPenjoki']);
+Route::get('/jumlah-transaksi-perbulan', [DashboardController::class, 'getMonthlyTransactionSummary']);
+Route::get('/jumlah-gaji-perbulan/{id_penjoki}', [DashboardController::class, 'getMonthlySalarySummary']);
+Route::get('/jumlah-transaksi-by-status', [DashboardController::class, 'getCountTransaksiByStatus']);

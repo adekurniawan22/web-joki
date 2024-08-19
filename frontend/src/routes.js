@@ -11,7 +11,6 @@ const TransaksiList = React.lazy(() => import('./views/transaksi/List'))
 
 const getRoutes = () => {
     const role = localStorage.getItem('role')
-    console.log('User Role:', role) // Debugging log
     let routes = []
 
     switch (role) {

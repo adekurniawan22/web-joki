@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import {
     CContainer,
@@ -13,6 +13,8 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilContrast, cilMenu, cilMoon, cilSun } from '@coreui/icons'
+import axiosInstance from '../../src/axiosConfig'
+import config from '../../src/config'
 
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
@@ -23,6 +25,22 @@ const AppHeader = () => {
 
     const dispatch = useDispatch()
     const sidebarShow = useSelector((state) => state.sidebarShow)
+    const user_id = localStorage.getItem('user_id')
+
+    const [users, setUsers] = useState([]) // State for users
+
+    // Fetch users (example URL, adjust as needed)
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axiosInstance.get(`${config.apiUrl}/users/` + user_id)
+                setUsers(response.data)
+            } catch (error) {
+                console.error('Error fetching users:', error)
+            }
+        }
+        fetchUsers()
+    }, [])
 
     useEffect(() => {
         document.addEventListener('scroll', () => {
@@ -88,9 +106,14 @@ const AppHeader = () => {
                     <li className="nav-item py-1">
                         <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
                     </li>
-                    <div className="d-flex justifu-content-center align-items-center">
-                        Ade (Admin)
+                    <div className="d-flex justify-content-center align-items-center">
+                        {users.nama} (
+                        {users.role
+                            ? users.role.charAt(0).toUpperCase() + users.role.slice(1).toLowerCase()
+                            : 'N/A'}
+                        )
                     </div>
+
                     <li className="nav-item py-1">
                         <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
                     </li>

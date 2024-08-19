@@ -36,7 +36,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function index()
+    public function getMonthlyTransactionSummary()
     {
         // Mendapatkan tahun saat ini
         $tahun = now()->year;
@@ -59,6 +59,49 @@ class DashboardController extends Controller
         return response()->json([
             'tahun' => $tahun,
             'data' => $bulanData
+        ]);
+    }
+
+    public function getMonthlySalarySummary($id_penjoki)
+    {
+        // Mendapatkan tahun saat ini
+        $tahun = now()->year;
+
+        // Query untuk menghitung total harga transaksi selesai setiap bulan dalam tahun ini
+        $transaksiPerBulan = Transaksi::selectRaw('MONTH(tgl_terima) as bulan, SUM(harga) as total_harga')
+            ->whereYear('tgl_terima', $tahun)
+            ->where('status', 'selesai')
+            ->where('take_by', $id_penjoki)
+            ->groupBy('bulan')
+            ->orderBy('bulan')
+            ->get()
+            ->keyBy('bulan');
+
+        // Siapkan data untuk view
+        $bulanData = [];
+        for ($bulan = 1; $bulan <= 12; $bulan++) {
+            $bulanData[$bulan] = $transaksiPerBulan->get($bulan)->total_harga ?? 0;
+        }
+
+        return response()->json([
+            'tahun' => $tahun,
+            'data' => $bulanData
+        ]);
+    }
+
+
+    public function getCountTransaksiByStatus()
+    {
+        // Menghitung jumlah transaksi berdasarkan status
+        $pending = Transaksi::where('status', 'pending')->count();
+        $dikerjakan = Transaksi::where('status', 'dikerjakan')->count();
+        $selesai = Transaksi::where('status', 'selesai')->count();
+
+        // Mengembalikan data dalam format JSON
+        return response()->json([
+            'pending' => $pending,
+            'dikerjakan' => $dikerjakan,
+            'selesai' => $selesai,
         ]);
     }
 }
