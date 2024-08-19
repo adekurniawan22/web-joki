@@ -8,6 +8,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import config from '../../config'
 import { toast } from 'react-toastify'
 import { Col, Row, Form as BootstrapForm } from 'react-bootstrap'
+import Select from 'react-select'
 
 // Utility function to convert ISO date to YYYY-MM-DD
 const isoToDateString = (isoString) => {
@@ -19,7 +20,7 @@ const dateStringToISO = (dateString) => {
     return dateString ? new Date(dateString).toISOString() : ''
 }
 
-const getValidationSchema = (showAdditionalFields) => {
+const getValidationSchema = (showAdditionalFields, status) => {
     return yup.object().shape({
         tipe: yup.string().required('Tipe tugas harus dipilih'),
         judul: yup.string().required('Judul tidak boleh kosong'),
@@ -27,6 +28,12 @@ const getValidationSchema = (showAdditionalFields) => {
         tgl_terima: yup.date().required('Tanggal Terima tidak boleh kosong'),
         tgl_selesai: yup.date().nullable(),
         status: yup.string().required('Status harus dipilih'),
+        take_by:
+            status === 'dikerjakan' || status === 'selesai'
+                ? yup.object().shape({
+                      value: yup.string().required('User harus dipilih'),
+                  })
+                : yup.object().nullable(),
         harga: yup
             .number()
             .required('Harga harus diisi')
@@ -49,9 +56,41 @@ const getValidationSchema = (showAdditionalFields) => {
                                   }
                                   // Check if the file type is valid when id is null
                                   return value
-                                      ? ['image/jpeg', 'image/jpg', 'image/png'].includes(
-                                            value.type,
-                                        )
+                                      ? [
+                                            'application/msword', // .doc, .docx
+                                            'application/vnd.ms-excel', // .xls, .xlsx
+                                            'application/vnd.ms-powerpoint', // .ppt, .pptx
+                                            'application/pdf', // .pdf
+                                            'text/plain', // .txt
+                                            'application/zip', // .zip
+                                            'application/x-rar-compressed', // .rar
+                                            'image/jpeg', // .jpeg, .jpg
+                                            'image/png', // .png
+                                            'application/javascript', // .js
+                                            'text/x-python', // .py
+                                            'text/html', // .html
+                                            'text/css', // .css
+                                        ].includes(value.type) ||
+                                            // Validate by file extension if MIME type is not available
+                                            [
+                                                '.js',
+                                                '.py',
+                                                '.html',
+                                                '.css',
+                                                '.doc',
+                                                '.docx',
+                                                '.xls',
+                                                '.xlsx',
+                                                '.ppt',
+                                                '.pptx',
+                                                '.pdf',
+                                                '.txt',
+                                                '.zip',
+                                                '.rar',
+                                                '.jpeg',
+                                                '.jpg',
+                                                '.png',
+                                            ].some((ext) => value.name.endsWith(ext))
                                       : false
                               },
                           )
@@ -75,6 +114,8 @@ const EditTransaksi = () => {
     const navigate = useNavigate()
     const { id } = useParams()
     const [showAdditionalFields, setShowAdditionalFields] = useState(false)
+    const [status, setStatus] = useState('')
+    const [users, setUsers] = useState([])
     const [initialValues, setInitialValues] = useState({
         tipe: '',
         judul: '',
@@ -88,6 +129,21 @@ const EditTransaksi = () => {
     })
 
     useEffect(() => {
+        // Fetch users for select options
+        const fetchUsers = async () => {
+            try {
+                const response = await axiosInstance.get(`${config.apiUrl}/users`)
+                setUsers(
+                    response.data.map((user) => ({
+                        value: user.id,
+                        label: user.nama,
+                    })),
+                )
+            } catch (error) {
+                toast.error('Terjadi kesalahan saat memuat data pengguna.')
+            }
+        }
+
         // Fetch transaction data
         const fetchTransaksi = async () => {
             try {
@@ -108,6 +164,7 @@ const EditTransaksi = () => {
                     status: data.status,
                     harga: data.harga,
                     created_by: data.created_by,
+                    take_by: data.take_by,
                     tambahan: data.files.map((file) => ({
                         keterangan: file.keterangan,
                         file: file.file ? file.file : null,
@@ -122,6 +179,7 @@ const EditTransaksi = () => {
             }
         }
 
+        fetchUsers()
         fetchTransaksi()
     }, [id])
 
@@ -133,6 +191,10 @@ const EditTransaksi = () => {
             // Konversi tanggal ke format ISO 8601, termasuk menangani tgl_selesai
             const updatedValues = {
                 ...values,
+                take_by:
+                    values.status === 'dikerjakan' || values.status === 'selesai'
+                        ? values.take_by.value
+                        : null,
                 tgl_terima: dateStringToISO(values.tgl_terima),
                 tgl_selesai: values.tgl_selesai ? dateStringToISO(values.tgl_selesai) : null,
                 harga: hargaInteger,
@@ -195,12 +257,12 @@ const EditTransaksi = () => {
     return (
         <Formik
             initialValues={initialValues}
-            validationSchema={() => getValidationSchema(showAdditionalFields)}
+            validationSchema={() => getValidationSchema(showAdditionalFields, status)}
             onSubmit={handleSubmit}
             enableReinitialize
         >
             {({ touched, errors, setFieldValue, isSubmitting, values }) => {
-                // console.log('Formik State:', { touched, errors, values })
+                console.log('initialValues:', initialValues.take_by)
                 return (
                     <CRow>
                         <CCol xs={12}>
@@ -349,6 +411,10 @@ const EditTransaksi = () => {
                                                     as="select"
                                                     name="status"
                                                     className={`form-control ${touched.status && errors.status ? 'is-invalid' : ''} ${touched.status && !errors.status && !isSubmitting ? 'is-valid' : ''}`}
+                                                    onChange={(e) => {
+                                                        setStatus(e.target.value) // Update status state
+                                                        setFieldValue('status', e.target.value)
+                                                    }}
                                                 >
                                                     <option value="">Pilih Status</option>
                                                     <option value="pending">Pending</option>
@@ -369,6 +435,44 @@ const EditTransaksi = () => {
                                                     )}
                                             </BootstrapForm.Group>
                                         </div>
+
+                                        {/* User Select (conditionally rendered) */}
+                                        {(values.status === 'dikerjakan' ||
+                                            values.status === 'selesai') && (
+                                            <div className="mb-3">
+                                                <BootstrapForm.Group controlId="validationFormikUser">
+                                                    <BootstrapForm.Label>User</BootstrapForm.Label>
+                                                    <Select
+                                                        options={users}
+                                                        onChange={(option) =>
+                                                            setFieldValue('take_by', option)
+                                                        }
+                                                        value={
+                                                            values.take_by
+                                                                ? users.find(
+                                                                      (user) =>
+                                                                          user.value ===
+                                                                          values.take_by,
+                                                                  )
+                                                                : null
+                                                        }
+                                                        className={`basic-single ${touched.take_by && errors.take_by ? 'is-invalid' : ''} ${touched.take_by && !errors.take_by && !isSubmitting ? 'is-valid' : ''}`}
+                                                    />
+                                                    <ErrorMessage
+                                                        name="take_by"
+                                                        component="div"
+                                                        className="invalid-feedback"
+                                                    />
+                                                    {!errors.take_by &&
+                                                        touched.take_by &&
+                                                        !isSubmitting && (
+                                                            <div className="valid-feedback">
+                                                                Looks good!
+                                                            </div>
+                                                        )}
+                                                </BootstrapForm.Group>
+                                            </div>
+                                        )}
 
                                         {/* Harga */}
                                         <div className="mb-3">

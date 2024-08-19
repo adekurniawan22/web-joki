@@ -23,7 +23,7 @@ class FileTransaksiController extends Controller
         $validator = Validator::make($request->all(), [
             'id_transaksi' => 'required|exists:transaksi,id',
             'keterangan' => 'required|string',
-            'file' => 'required|file|mimes:pdf,jpeg,png,jpg|max:2048',
+            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar,jpeg,jpg,png,js,py,html,css',
         ]);
 
         if ($validator->fails()) {
@@ -47,6 +47,7 @@ class FileTransaksiController extends Controller
             'data' => $fileTransaksi
         ], 201);
     }
+
 
     public function show($id)
     {

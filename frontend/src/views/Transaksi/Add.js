@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Formik, Field, Form, ErrorMessage } from 'formik'
 import * as yup from 'yup'
 import axiosInstance from '../../axiosConfig'
@@ -8,9 +8,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import config from '../../config'
 import { toast } from 'react-toastify'
 import { Col, Row, Form as BootstrapForm } from 'react-bootstrap'
+import Select from 'react-select'
 
 // Validasi harga diubah dari string menjadi number
-const getValidationSchema = (showAdditionalFields) => {
+const getValidationSchema = (showAdditionalFields, status) => {
     return yup.object().shape({
         tipe: yup.string().required('Tipe tugas harus dipilih'),
         judul: yup.string().required('Judul tidak boleh kosong'),
@@ -23,6 +24,12 @@ const getValidationSchema = (showAdditionalFields) => {
             .required('Harga harus diisi')
             .typeError('Harga harus berupa angka')
             .positive('Harga harus lebih besar dari 0'),
+        take_by:
+            status === 'dikerjakan' || status === 'selesai'
+                ? yup.object().shape({
+                      value: yup.string().required('User harus dipilih'),
+                  })
+                : yup.object().nullable(),
         tambahan: showAdditionalFields
             ? yup.array().of(
                   yup.object().shape({
@@ -32,10 +39,37 @@ const getValidationSchema = (showAdditionalFields) => {
                           .required('File tidak boleh kosong')
                           .test(
                               'fileType',
-                              'Hanya file gambar jpg, jpeg, dan png yang diizinkan',
+                              'Hanya file dengan ekstensi yang diizinkan yang diizinkan',
                               (value) => {
-                                  return ['image/jpeg', 'image/jpg', 'image/png'].includes(
-                                      value.type,
+                                  if (!value) return false
+                                  const allowedTypes = [
+                                      'application/pdf',
+                                      'application/msword',
+                                      'application/vnd.ms-excel',
+                                      'application/vnd.ms-powerpoint',
+                                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                      'text/plain',
+                                      'application/zip',
+                                      'application/x-zip-compressed',
+                                      'application/x-rar-compressed',
+                                      'image/jpeg',
+                                      'image/jpg',
+                                      'image/png',
+                                      'video/mp4', // .mp4
+                                      'audio/mpeg', // .mp3
+                                      'application/javascript', // .js
+                                      'text/x-python', // .py
+                                      'text/html', // .html
+                                      'text/css', // .css
+                                  ]
+                                  return (
+                                      allowedTypes.includes(value.type) ||
+                                      // Validate by file extension if MIME type is not available
+                                      ['.js', '.py', '.html', '.css'].some((ext) =>
+                                          value.name.endsWith(ext),
+                                      )
                                   )
                               },
                           ),
@@ -46,8 +80,24 @@ const getValidationSchema = (showAdditionalFields) => {
 }
 
 const FormTambahTransaksi = () => {
+    const [users, setUsers] = useState([]) // State for users
+
+    // Fetch users (example URL, adjust as needed)
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axiosInstance.get(`${config.apiUrl}/users`)
+                setUsers(response.data.map((user) => ({ value: user.id, label: user.nama })))
+            } catch (error) {
+                console.error('Error fetching users:', error)
+            }
+        }
+        fetchUsers()
+    }, [])
+
     const navigate = useNavigate()
     const [showAdditionalFields, setShowAdditionalFields] = useState(false)
+    const [status, setStatus] = useState('')
 
     const initialValues = {
         tipe: '',
@@ -59,6 +109,7 @@ const FormTambahTransaksi = () => {
         harga: '',
         created_by: '',
         tambahan: [{ keterangan: '', file: null }], // Initial state for additional fields
+        take_by: null,
     }
 
     const handleSubmit = async (values) => {
@@ -71,7 +122,11 @@ const FormTambahTransaksi = () => {
                 `${config.apiUrl}/transaksi`,
                 {
                     ...values,
-                    created_by: 1,
+                    take_by:
+                        values.status === 'dikerjakan' || values.status === 'selesai'
+                            ? values.take_by.value
+                            : null,
+                    created_by: localStorage.getItem('user_id'),
                     tgl_selesai: values.tgl_selesai ? values.tgl_selesai : null,
                     harga: hargaInteger,
                 },
@@ -109,16 +164,11 @@ const FormTambahTransaksi = () => {
     return (
         <Formik
             initialValues={initialValues}
-            validationSchema={() => getValidationSchema(showAdditionalFields)}
+            validationSchema={() => getValidationSchema(showAdditionalFields, status)}
             onSubmit={handleSubmit}
             enableReinitialize
         >
             {({ touched, errors, setFieldValue, isSubmitting, values }) => {
-                console.log('Formik Values:', values)
-                console.log('Formik Errors:', errors)
-                console.log('Formik Touched:', touched)
-                console.log('isSubmitting:', isSubmitting)
-
                 return (
                     <CRow>
                         <CCol xs={12}>
@@ -268,6 +318,10 @@ const FormTambahTransaksi = () => {
                                                     as="select"
                                                     name="status"
                                                     className={`form-control ${touched.status && errors.status ? 'is-invalid' : ''} ${touched.status && !errors.status && !isSubmitting ? 'is-valid' : ''}`}
+                                                    onChange={(e) => {
+                                                        setStatus(e.target.value) // Update status state
+                                                        setFieldValue('status', e.target.value)
+                                                    }}
                                                 >
                                                     <option value="">Pilih Status</option>
                                                     <option value="pending">Pending</option>
@@ -288,6 +342,57 @@ const FormTambahTransaksi = () => {
                                                     )}
                                             </BootstrapForm.Group>
                                         </div>
+
+                                        {/* User Select (conditionally rendered) */}
+                                        {(status === 'dikerjakan' || status === 'selesai') && (
+                                            <div className="mb-3">
+                                                <BootstrapForm.Group controlId="validationFormikUser">
+                                                    <BootstrapForm.Label>
+                                                        Take By
+                                                    </BootstrapForm.Label>
+                                                    <Select
+                                                        options={users}
+                                                        onChange={(option) =>
+                                                            setFieldValue('take_by', option)
+                                                        }
+                                                        value={values.user}
+                                                        className={`basic-single ${touched.take_by && errors.take_by ? 'is-invalid' : ''} ${touched.take_by && !errors.take_by && !isSubmitting ? 'is-valid' : ''}`}
+                                                    />
+                                                    <div
+                                                        className={`invalid-feedback ${touched.take_by && touched.take_by ? 'd-block' : ''}`}
+                                                    >
+                                                        <ErrorMessage
+                                                            name="take_by"
+                                                            component="div"
+                                                            className="invalid-feedback"
+                                                            // Use the `render` prop to customize the error message
+                                                            render={(msg) => {
+                                                                // Customize error message if it's the specific one
+                                                                if (
+                                                                    msg === `take_by cannot be null`
+                                                                ) {
+                                                                    return (
+                                                                        <div>
+                                                                            Take By tidak boleh
+                                                                            kosong
+                                                                        </div>
+                                                                    )
+                                                                }
+                                                                // Default rendering for other errors
+                                                                return <div>{msg}</div>
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    {!errors.take_by &&
+                                                        touched.take_by &&
+                                                        !isSubmitting && (
+                                                            <div className="valid-feedback">
+                                                                Looks good!
+                                                            </div>
+                                                        )}
+                                                </BootstrapForm.Group>
+                                            </div>
+                                        )}
 
                                         {/* Harga */}
                                         <div className="mb-3">
