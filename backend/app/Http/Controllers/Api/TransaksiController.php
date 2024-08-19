@@ -121,4 +121,16 @@ class TransaksiController extends Controller
         }
         return response()->json(['message' => 'Transaction not found'], 404);
     }
+
+    public function riwayatTransaksi($id_penjoki)
+    {
+        // Mendapatkan transaksi berdasarkan id_penjoki dan mengurutkannya berdasarkan id dalam urutan menurun
+        $transaksi = Transaksi::with(['creator:id,nama', 'taker:id,nama', 'files'])
+            ->where('status', 'selesai') // Menambahkan kondisi where untuk memfilter berdasarkan id_penjoki
+            ->where('take_by', $id_penjoki) // Menambahkan kondisi where untuk memfilter berdasarkan id_penjoki
+            ->orderBy('id', 'desc') // Mengurutkan hasil berdasarkan kolom id dalam urutan menurun
+            ->get();
+
+        return response()->json($transaksi, 200);
+    }
 }

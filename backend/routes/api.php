@@ -20,10 +20,24 @@ Route::middleware('api.token')->group(function () {
         'transaksi' => TransaksiController::class,
         'file-transaksi' => FileTransaksiController::class,
     ]);
-});
 
-Route::get('/jumlah-user-by-role', [DashboardController::class, 'getCountByRole']);
-Route::get('/top-penjoki', [DashboardController::class, 'topPenjoki']);
-Route::get('/jumlah-transaksi-perbulan', [DashboardController::class, 'getMonthlyTransactionSummary']);
-Route::get('/jumlah-gaji-perbulan/{id_penjoki}', [DashboardController::class, 'getMonthlySalarySummary']);
-Route::get('/jumlah-transaksi-by-status', [DashboardController::class, 'getCountTransaksiByStatus']);
+    // Dashboard
+    Route::get('/jumlah-user-by-role', [DashboardController::class, 'getCountByRole']);
+    Route::get('/top-penjoki/{limit}', [DashboardController::class, 'topPenjoki'])
+        ->where('limit', '[0-9]+');
+    Route::get('/jumlah-transaksi-perbulan/{id_penjoki}', [DashboardController::class, 'getMonthlyTransactionSummary']);
+    Route::get('/jumlah-transaksi-perbulan', [DashboardController::class, 'getMonthlyTransactionSummary']);
+    Route::get('/jumlah-gaji-perbulan/{id_penjoki}', [DashboardController::class, 'getMonthlySalarySummary']);
+    Route::get('/jumlah-transaksi-by-status', [DashboardController::class, 'getCountTransactionByStatus']);
+
+    // Riwayat Transaksi
+    Route::get('/transaksi/riwayat/{id}', [TransaksiController::class, 'riwayatTransaksi']);
+
+    // Leaderboard
+    Route::get('/top-penjoki', [DashboardController::class, 'topPenjoki']);
+
+    // PDF
+    Route::get('/export-monthly-summary', [DashboardController::class, 'exportMonthlyTransactionSummary']);
+    Route::get('/export-monthly-summary/{id_penjoki}', [DashboardController::class, 'exportMonthlyTransactionSummary']);
+    Route::get('/export-monthly-salary-summary/{id_penjoki}', [DashboardController::class, 'exportgetMonthlySalarySummary']);
+});
