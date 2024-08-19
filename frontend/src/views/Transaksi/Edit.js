@@ -57,15 +57,22 @@ const getValidationSchema = (showAdditionalFields, status) => {
                                   // Check if the file type is valid when id is null
                                   return value
                                       ? [
-                                            'application/msword', // .doc, .docx
-                                            'application/vnd.ms-excel', // .xls, .xlsx
-                                            'application/vnd.ms-powerpoint', // .ppt, .pptx
-                                            'application/pdf', // .pdf
-                                            'text/plain', // .txt
-                                            'application/zip', // .zip
-                                            'application/x-rar-compressed', // .rar
-                                            'image/jpeg', // .jpeg, .jpg
-                                            'image/png', // .png
+                                            'application/pdf',
+                                            'application/msword',
+                                            'application/vnd.ms-excel',
+                                            'application/vnd.ms-powerpoint',
+                                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                            'text/plain',
+                                            'application/zip',
+                                            'application/x-zip-compressed',
+                                            'application/x-rar-compressed',
+                                            'image/jpeg',
+                                            'image/jpg',
+                                            'image/png',
+                                            'video/mp4', // .mp4
+                                            'audio/mpeg', // .mp3
                                             'application/javascript', // .js
                                             'text/x-python', // .py
                                             'text/html', // .html
