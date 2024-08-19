@@ -62,7 +62,7 @@ const Dashboard = () => {
                     setUserCounts(userCountResponse.data)
 
                     const { data: topPenjokiData } = await axiosInstance.get(
-                        `${config.apiUrl}/top-penjoki`,
+                        `${config.apiUrl}/top-penjoki/3`,
                     )
                     const topPenjokis = Array.isArray(topPenjokiData.top_penjoki)
                         ? topPenjokiData.top_penjoki
@@ -74,8 +74,9 @@ const Dashboard = () => {
                     )
                     setTransactionCounts(transactionCountsResponse.data)
                 } else if (role === 'penjoki') {
+                    const userId = localStorage.getItem('user_id')
                     const { data: gajiData } = await axiosInstance.get(
-                        `${config.apiUrl}/jumlah-gaji-perbulan/` + localStorage.getItem('user_id'),
+                        `${config.apiUrl}/jumlah-gaji-perbulan/${userId}`,
                     )
 
                     const labels = [
@@ -115,9 +116,11 @@ const Dashboard = () => {
                     setTahun(gajiData.tahun)
                 }
 
+                const userId = role === 'penjoki' ? localStorage.getItem('user_id') : ''
                 const { data: transaksiData } = await axiosInstance.get(
-                    `${config.apiUrl}/jumlah-transaksi-perbulan`,
+                    `${config.apiUrl}/jumlah-transaksi-perbulan${userId ? '/' + userId : ''}`,
                 )
+
                 const labels = [
                     'Januari',
                     'Februari',
@@ -274,185 +277,260 @@ const Dashboard = () => {
             },
         },
     }
+
     return (
         <>
             {role === 'penjoki' && (
-                <CCard className="mb-4">
-                    <CCardBody>
-                        <CRow>
-                            <CCol sm={5}>
-                                <h4 id="traffic" className="card-title mb-0">
-                                    Gaji Per Bulan Tahun {tahun}
-                                </h4>
-                            </CCol>
-                            <CCol sm={7} className="d-none d-md-block">
-                                <CButton color="primary" className="float-end">
-                                    <CIcon icon={cilCloudDownload} />
-                                </CButton>
-                            </CCol>
-                        </CRow>
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                height: '70vh',
-                                width: '100%',
-                            }}
-                        >
-                            <div style={{ flex: 1 }}>
-                                <CChart
-                                    style={{ height: '100%' }}
-                                    type="bar"
-                                    data={chartDataGaji}
-                                    ref={chartRef}
-                                    options={chartOptionsGaji}
-                                />
+                <>
+                    <CCard className="mb-4">
+                        <CCardBody>
+                            <CRow>
+                                <CCol sm={5}>
+                                    <h4 id="traffic" className="card-title mb-0">
+                                        Gaji Per Bulan Tahun {tahun}
+                                    </h4>
+                                </CCol>
+                                <CCol sm={7} className="d-none d-md-block">
+                                    <a
+                                        href={
+                                            `${config.apiUrl}/export-monthly-salary-summary/` +
+                                            localStorage.getItem('user_id')
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <CButton color="primary" className="float-end">
+                                            <CIcon icon={cilCloudDownload} />
+                                        </CButton>
+                                    </a>
+                                </CCol>
+                            </CRow>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    height: '70vh',
+                                    width: '100%',
+                                }}
+                            >
+                                <div style={{ flex: 1 }}>
+                                    <CChart
+                                        style={{ height: '100%' }}
+                                        type="bar"
+                                        data={chartDataGaji}
+                                        ref={chartRef}
+                                        options={chartOptionsGaji}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    </CCardBody>
-                </CCard>
+                        </CCardBody>
+                    </CCard>
+
+                    <CCard className="mb-4">
+                        <CCardBody>
+                            <CRow>
+                                <CCol sm={5}>
+                                    <h4 id="traffic" className="card-title mb-0">
+                                        Transaksi Per Bulan Tahun {tahun}
+                                    </h4>
+                                </CCol>
+                                <CCol sm={7} className="d-none d-md-block">
+                                    <a
+                                        href={
+                                            `${config.apiUrl}/export-monthly-summary/` +
+                                            localStorage.getItem('user_id')
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <CButton color="primary" className="float-end">
+                                            <CIcon icon={cilCloudDownload} />
+                                        </CButton>
+                                    </a>
+                                </CCol>
+                            </CRow>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    height: '70vh',
+                                    width: '100%',
+                                }}
+                            >
+                                <div style={{ flex: 1 }}>
+                                    <CChart
+                                        style={{ height: '100%' }}
+                                        type="bar"
+                                        data={chartData}
+                                        ref={chartRef}
+                                        options={chartOptions}
+                                    />
+                                </div>
+                            </div>
+                        </CCardBody>
+                    </CCard>
+                </>
             )}
 
             {role != 'penjoki' && (
-                <CRow>
-                    {/* If role is admin */}
-                    {role === 'owner' && (
-                        <>
-                            <CCol lg={6} md={12}>
-                                <CWidgetStatsF
-                                    className="mb-3"
-                                    color="success"
-                                    icon={
-                                        <div className="d-flex align-items-center">
-                                            <CIcon icon={cilPeople} height={48} className="h-100" />
-                                            <span style={{ marginLeft: '8px' }}>Total User </span>
-                                        </div>
-                                    }
-                                    title={
-                                        <ul
-                                            style={{
-                                                listStyleType: 'none',
-                                                paddingLeft: 0,
-                                                margin: 0,
-                                                fontSize: '1em',
-                                            }}
-                                        >
-                                            <li>{userCounts.owner} Owner</li>
-                                            <li>{userCounts.admin} Admin</li>
-                                            <li>{userCounts.penjoki} Penjoki</li>
-                                        </ul>
-                                    }
-                                    padding={false}
-                                />
-                            </CCol>
-                            <CCol lg={6} md={12}>
-                                <CWidgetStatsF
-                                    className="mb-3"
-                                    color="warning"
-                                    icon={
-                                        <div className="d-flex align-items-center">
-                                            <CIcon icon={cilBadge} height={48} className="h-100" />
-                                            <span style={{ marginLeft: '8px', fontSize: '1.2em' }}>
-                                                Top 3 Penjoki
-                                            </span>
-                                        </div>
-                                    }
-                                    title={
-                                        <ul
-                                            style={{
-                                                listStyleType: 'none',
-                                                paddingLeft: 0,
-                                                margin: 0,
-                                                fontSize: '1em',
-                                            }}
-                                        >
-                                            {topPenjokis.map((penjoki, index) => (
-                                                <li key={penjoki.id}>
-                                                    {index + 1 + '. '}
-                                                    {penjoki.nama} ({penjoki.transaksi_count}{' '}
-                                                    Transaksi)
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    }
-                                    padding={false}
-                                />
-                            </CCol>
-                        </>
-                    )}
-
-                    {/* If role is owner */}
-                    {role === 'admin' && (
-                        <>
-                            <CCol lg={4}>
-                                <CWidgetStatsF
-                                    className="mb-3"
-                                    color="warning"
-                                    icon={<CIcon icon={cilChartPie} height={24} />}
-                                    padding={false}
-                                    title="TRANSAKSI PENDING"
-                                    value={transactionCounts.pending}
-                                />
-                            </CCol>
-                            <CCol lg={4}>
-                                <CWidgetStatsF
-                                    className="mb-3"
-                                    color="info"
-                                    icon={<CIcon icon={cilChartPie} height={24} />}
-                                    padding={false}
-                                    title="TRANSAKSI DIKERJAKAN"
-                                    value={transactionCounts.dikerjakan}
-                                />
-                            </CCol>
-                            <CCol lg={4}>
-                                <CWidgetStatsF
-                                    className="mb-3"
-                                    color="success"
-                                    icon={<CIcon icon={cilChartPie} height={24} />}
-                                    padding={false}
-                                    title="TRANSAKSI SELESAI"
-                                    value={transactionCounts.selesai}
-                                />
-                            </CCol>
-                        </>
-                    )}
-                </CRow>
-            )}
-
-            <CCard className="mb-4">
-                <CCardBody>
+                <>
                     <CRow>
-                        <CCol sm={5}>
-                            <h4 id="traffic" className="card-title mb-0">
-                                Transaksi Per Bulan Tahun {tahun}
-                            </h4>
-                        </CCol>
-                        <CCol sm={7} className="d-none d-md-block">
-                            <CButton color="primary" className="float-end">
-                                <CIcon icon={cilCloudDownload} />
-                            </CButton>
-                        </CCol>
+                        {/* If role is admin */}
+                        {role === 'owner' && (
+                            <>
+                                <CCol lg={6} md={12}>
+                                    <CWidgetStatsF
+                                        className="mb-3"
+                                        color="success"
+                                        icon={
+                                            <div className="d-flex align-items-center">
+                                                <CIcon
+                                                    icon={cilPeople}
+                                                    height={48}
+                                                    className="h-100"
+                                                />
+                                                <span style={{ marginLeft: '8px' }}>
+                                                    Total User{' '}
+                                                </span>
+                                            </div>
+                                        }
+                                        title={
+                                            <ul
+                                                style={{
+                                                    listStyleType: 'none',
+                                                    paddingLeft: 0,
+                                                    margin: 0,
+                                                    fontSize: '1em',
+                                                }}
+                                            >
+                                                <li>{userCounts.owner} Owner</li>
+                                                <li>{userCounts.admin} Admin</li>
+                                                <li>{userCounts.penjoki} Penjoki</li>
+                                            </ul>
+                                        }
+                                        padding={false}
+                                    />
+                                </CCol>
+                                <CCol lg={6} md={12}>
+                                    <CWidgetStatsF
+                                        className="mb-3"
+                                        color="warning"
+                                        icon={
+                                            <div className="d-flex align-items-center">
+                                                <CIcon
+                                                    icon={cilBadge}
+                                                    height={48}
+                                                    className="h-100"
+                                                />
+                                                <span
+                                                    style={{ marginLeft: '8px', fontSize: '1.2em' }}
+                                                >
+                                                    Top 3 Penjoki
+                                                </span>
+                                            </div>
+                                        }
+                                        title={
+                                            <ul
+                                                style={{
+                                                    listStyleType: 'none',
+                                                    paddingLeft: 0,
+                                                    margin: 0,
+                                                    fontSize: '1em',
+                                                }}
+                                            >
+                                                {topPenjokis.map((penjoki, index) => (
+                                                    <li key={penjoki.id}>
+                                                        {index + 1 + '. '}
+                                                        {penjoki.nama} ({penjoki.transaksi_count}{' '}
+                                                        Transaksi)
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        }
+                                        padding={false}
+                                    />
+                                </CCol>
+                            </>
+                        )}
+
+                        {/* If role is owner */}
+                        {role === 'admin' && (
+                            <>
+                                <CCol lg={4}>
+                                    <CWidgetStatsF
+                                        className="mb-3"
+                                        color="warning"
+                                        icon={<CIcon icon={cilChartPie} height={24} />}
+                                        padding={false}
+                                        title="TRANSAKSI PENDING"
+                                        value={transactionCounts.pending}
+                                    />
+                                </CCol>
+                                <CCol lg={4}>
+                                    <CWidgetStatsF
+                                        className="mb-3"
+                                        color="info"
+                                        icon={<CIcon icon={cilChartPie} height={24} />}
+                                        padding={false}
+                                        title="TRANSAKSI DIKERJAKAN"
+                                        value={transactionCounts.dikerjakan}
+                                    />
+                                </CCol>
+                                <CCol lg={4}>
+                                    <CWidgetStatsF
+                                        className="mb-3"
+                                        color="success"
+                                        icon={<CIcon icon={cilChartPie} height={24} />}
+                                        padding={false}
+                                        title="TRANSAKSI SELESAI"
+                                        value={transactionCounts.selesai}
+                                    />
+                                </CCol>
+                            </>
+                        )}
                     </CRow>
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            height: '70vh',
-                            width: '100%',
-                        }}
-                    >
-                        <div style={{ flex: 1 }}>
-                            <CChart
-                                style={{ height: '100%' }}
-                                type="bar"
-                                data={chartData}
-                                ref={chartRef}
-                                options={chartOptions}
-                            />
-                        </div>
-                    </div>
-                </CCardBody>
-            </CCard>
+                    <CCard className="mb-4">
+                        <CCardBody>
+                            <CRow>
+                                <CCol sm={5}>
+                                    <h4 id="traffic" className="card-title mb-0">
+                                        Transaksi Per Bulan Tahun {tahun}
+                                    </h4>
+                                </CCol>
+                                <CCol sm={7} className="d-none d-md-block">
+                                    <a
+                                        href={`${config.apiUrl}/export-monthly-summary`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <CButton color="primary" className="float-end">
+                                            <CIcon icon={cilCloudDownload} />
+                                        </CButton>
+                                    </a>
+                                </CCol>
+                            </CRow>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    height: '70vh',
+                                    width: '100%',
+                                }}
+                            >
+                                <div style={{ flex: 1 }}>
+                                    <CChart
+                                        style={{ height: '100%' }}
+                                        type="bar"
+                                        data={chartData}
+                                        ref={chartRef}
+                                        options={chartOptions}
+                                    />
+                                </div>
+                            </div>
+                        </CCardBody>
+                    </CCard>
+                </>
+            )}
         </>
     )
 }

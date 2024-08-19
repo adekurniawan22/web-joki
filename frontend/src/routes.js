@@ -5,9 +5,11 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const AddUser = React.lazy(() => import('./views/user/Add'))
 const EditUser = React.lazy(() => import('./views/user/Edit'))
 const UserList = React.lazy(() => import('./views/user/List'))
+const TransaksiList = React.lazy(() => import('./views/transaksi/List'))
 const AddTransaksi = React.lazy(() => import('./views/transaksi/Add'))
 const EditTransaksi = React.lazy(() => import('./views/transaksi/Edit'))
-const TransaksiList = React.lazy(() => import('./views/transaksi/List'))
+const RiwayatList = React.lazy(() => import('./views/transaksi/RiwayatList'))
+const Leaderboard = React.lazy(() => import('./views/leaderboard/Leaderboard'))
 
 const getRoutes = () => {
     const role = localStorage.getItem('role')
@@ -62,6 +64,16 @@ const getRoutes = () => {
                     path: '/transaksi/edit/:id',
                     name: 'Edit Transaksi',
                     element: EditTransaksi,
+                },
+                {
+                    path: '/riwayat-transaksi',
+                    name: 'Riwayat Transaksi',
+                    element: RiwayatList,
+                },
+                {
+                    path: '/leaderboard',
+                    name: 'Leaderboard',
+                    element: Leaderboard,
                 },
             ]
             break

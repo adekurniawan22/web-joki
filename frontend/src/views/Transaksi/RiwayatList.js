@@ -34,7 +34,9 @@ const TransaksiList = () => {
     useEffect(() => {
         const fetchTransaksi = async () => {
             try {
-                const response = await axiosInstance.get(`${config.apiUrl}/transaksi`)
+                const response = await axiosInstance.get(
+                    `${config.apiUrl}/transaksi/riwayat/` + localStorage.getItem('user_id'),
+                )
                 setTransaksi(response.data)
                 setLoading(false)
             } catch (error) {
@@ -45,18 +47,6 @@ const TransaksiList = () => {
 
         fetchTransaksi()
     }, [])
-
-    const handleDelete = async (transaksiId) => {
-        try {
-            await axiosInstance.delete(`${config.apiUrl}/transaksi/${transaksiId}`)
-            setTransaksi(transaksi.filter((transaksi) => transaksi.id !== transaksiId))
-            toast.success('Transaksi berhasil dihapus!')
-        } catch (error) {
-            toast.error('Gagal menghapus transaksi')
-        } finally {
-            setModalVisible(false)
-        }
-    }
 
     const handleRowClick = async (row) => {
         try {
@@ -113,7 +103,7 @@ const TransaksiList = () => {
             name: 'Judul',
             selector: (row) => row.judul,
             wrap: true,
-            width: `30%`,
+            width: `40%`,
             sortable: true,
             style: {
                 cursor: 'pointer',
@@ -140,6 +130,16 @@ const TransaksiList = () => {
                 cursor: 'pointer',
             },
         },
+
+        {
+            name: 'Keuntungan',
+            selector: (row) => formatRupiah(row.harga * 0.5),
+            sortable: true,
+            center: `true`,
+            style: {
+                cursor: 'pointer',
+            },
+        },
         {
             name: 'Status',
             selector: (row) => capitalizeFirstLetter(row.status),
@@ -148,37 +148,6 @@ const TransaksiList = () => {
             style: {
                 cursor: 'pointer',
             },
-        },
-
-        {
-            name: 'Action',
-            center: `true`,
-            style: {
-                color: 'white',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                textAlign: 'center',
-                cursor: 'pointer',
-            },
-            cell: (row) => (
-                <div>
-                    <Link to={`/transaksi/edit/${row.id}`} className="btn btn-primary btn-sm me-2">
-                        Edit
-                    </Link>
-                    <CButton
-                        color="danger"
-                        className="text-light"
-                        size="sm"
-                        onClick={() => {
-                            setSelectedTransaksi(row.id)
-                            setModalVisible(true)
-                        }}
-                    >
-                        Hapus
-                    </CButton>
-                </div>
-            ),
         },
     ]
 
@@ -216,13 +185,10 @@ const TransaksiList = () => {
                         className="form-control"
                         style={{ width: '30%' }}
                     />
-                    <Link to="/transaksi/create" className="btn btn-primary">
-                        Tambah Transaksi
-                    </Link>
                 </div>
                 <CCard className="mb-4">
                     <CCardHeader>
-                        <strong>Daftar Transaksi</strong>
+                        <strong>Riwayat Transaksi</strong>
                     </CCardHeader>
                     <CCardBody>
                         {loading ? (
@@ -262,25 +228,6 @@ const TransaksiList = () => {
                     </CCardBody>
                 </CCard>
                 <ToastContainer />
-
-                <CModal visible={modalVisible} onClose={() => setModalVisible(false)}>
-                    <CModalHeader>
-                        <CModalTitle>Konfirmasi Hapus</CModalTitle>
-                    </CModalHeader>
-                    <CModalBody>Apakah Anda yakin ingin menghapus transaksi ini?</CModalBody>
-                    <CModalFooter>
-                        <CButton color="secondary" onClick={() => setModalVisible(false)}>
-                            Batal
-                        </CButton>
-                        <CButton
-                            color="danger"
-                            className="text-light"
-                            onClick={() => handleDelete(selectedTransaksi)}
-                        >
-                            Hapus
-                        </CButton>
-                    </CModalFooter>
-                </CModal>
 
                 <CModal visible={detailModalVisible} onClose={() => setDetailModalVisible(false)}>
                     <CModalHeader>
