@@ -15,20 +15,17 @@ import {
     CModalBody,
     CModalFooter,
 } from '@coreui/react'
-import { Link } from 'react-router-dom'
 import config from '../../config'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import DataTable from 'react-data-table-component'
 
-const TransaksiList = () => {
+const RiwayatList = () => {
     const [transaksi, setTransaksi] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [search, setSearch] = useState('')
-    const [modalVisible, setModalVisible] = useState(false)
     const [detailModalVisible, setDetailModalVisible] = useState(false)
-    const [selectedTransaksi, setSelectedTransaksi] = useState(null)
     const [detailTransaksi, setDetailTransaksi] = useState(null) // New state for detail data
 
     useEffect(() => {
@@ -93,7 +90,7 @@ const TransaksiList = () => {
             name: 'Tipe',
             selector: (row) => row.tipe,
             center: `true`,
-            width: `10%`,
+            width: `15%`,
             sortable: true,
             style: {
                 cursor: 'pointer',
@@ -105,18 +102,6 @@ const TransaksiList = () => {
             wrap: true,
             width: `40%`,
             sortable: true,
-            style: {
-                cursor: 'pointer',
-            },
-        },
-        {
-            name: 'Tanggal',
-            selector: (row) =>
-                row.tgl_selesai
-                    ? `${formatTanggal(row.tgl_terima)} - ${formatTanggal(row.tgl_selesai)}`
-                    : formatTanggal(row.tgl_terima) + ' - proses',
-            sortable: true,
-            center: `true`,
             style: {
                 cursor: 'pointer',
             },
@@ -319,4 +304,4 @@ const TransaksiList = () => {
     )
 }
 
-export default TransaksiList
+export default RiwayatList

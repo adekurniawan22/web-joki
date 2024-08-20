@@ -103,7 +103,7 @@ const TransaksiList = () => {
             name: 'Tipe',
             selector: (row) => row.tipe,
             center: `true`,
-            width: `10%`,
+            width: `15%`,
             sortable: true,
             style: {
                 cursor: 'pointer',
@@ -113,20 +113,8 @@ const TransaksiList = () => {
             name: 'Judul',
             selector: (row) => row.judul,
             wrap: true,
-            width: `30%`,
+            width: `35%`,
             sortable: true,
-            style: {
-                cursor: 'pointer',
-            },
-        },
-        {
-            name: 'Tanggal',
-            selector: (row) =>
-                row.tgl_selesai
-                    ? `${formatTanggal(row.tgl_terima)} - ${formatTanggal(row.tgl_selesai)}`
-                    : formatTanggal(row.tgl_terima) + ' - proses',
-            sortable: true,
-            center: `true`,
             style: {
                 cursor: 'pointer',
             },
