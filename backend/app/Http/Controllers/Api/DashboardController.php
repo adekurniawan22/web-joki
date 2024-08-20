@@ -190,4 +190,19 @@ class DashboardController extends Controller
             'selesai' => $selesai,
         ]);
     }
+
+    public function getCountTransactionByStatusPenjoki($id_penjoki)
+    {
+        // Menghitung jumlah transaksi berdasarkan status
+        $pending = Transaksi::where('status', 'pending')->where('take_by', $id_penjoki)->count();
+        $dikerjakan = Transaksi::where('status', 'dikerjakan')->where('take_by', $id_penjoki)->count();
+        $selesai = Transaksi::where('status', 'selesai')->where('take_by', $id_penjoki)->count();
+
+        // Mengembalikan data dalam format JSON
+        return response()->json([
+            'pending' => $pending,
+            'dikerjakan' => $dikerjakan,
+            'selesai' => $selesai,
+        ]);
+    }
 }

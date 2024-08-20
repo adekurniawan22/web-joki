@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\{
     TransaksiController,
     FileTransaksiController,
     DashboardController,
+    FileTransaksiSelesaiController
 };
 
 // Rute login dan logout tidak memerlukan token
@@ -19,6 +20,7 @@ Route::middleware('api.token')->group(function () {
         'users' => UserController::class,
         'transaksi' => TransaksiController::class,
         'file-transaksi' => FileTransaksiController::class,
+        'file-transaksi-selesai' => FileTransaksiSelesaiController::class,
     ]);
 
     // Dashboard
@@ -29,9 +31,11 @@ Route::middleware('api.token')->group(function () {
     Route::get('/jumlah-transaksi-perbulan', [DashboardController::class, 'getMonthlyTransactionSummary']);
     Route::get('/jumlah-gaji-perbulan/{id_penjoki}', [DashboardController::class, 'getMonthlySalarySummary']);
     Route::get('/jumlah-transaksi-by-status', [DashboardController::class, 'getCountTransactionByStatus']);
+    Route::get('/jumlah-transaksi-by-status/{id_penjoki}', [DashboardController::class, 'getCountTransactionByStatusPenjoki']);
 
     // Riwayat Transaksi
     Route::get('/transaksi/riwayat/{id}', [TransaksiController::class, 'riwayatTransaksi']);
+    Route::put('/transaksi/ambil/{id}', [TransaksiController::class, 'ambilJoki']);
 
     // Leaderboard
     Route::get('/top-penjoki', [DashboardController::class, 'topPenjoki']);

@@ -75,6 +75,10 @@ const Dashboard = () => {
                     setTransactionCounts(transactionCountsResponse.data)
                 } else if (role === 'penjoki') {
                     const userId = localStorage.getItem('user_id')
+                    const transactionCountsResponse = await axiosInstance.get(
+                        `${config.apiUrl}/jumlah-transaksi-by-status/` + userId,
+                    )
+                    setTransactionCounts(transactionCountsResponse.data)
                     const { data: gajiData } = await axiosInstance.get(
                         `${config.apiUrl}/jumlah-gaji-perbulan/${userId}`,
                     )
@@ -282,6 +286,28 @@ const Dashboard = () => {
         <>
             {role === 'penjoki' && (
                 <>
+                    <CRow>
+                        <CCol lg={6}>
+                            <CWidgetStatsF
+                                className="mb-3"
+                                color="info"
+                                icon={<CIcon icon={cilChartPie} height={24} />}
+                                padding={false}
+                                title="TRANSAKSI DIKERJAKAN"
+                                value={transactionCounts.dikerjakan}
+                            />
+                        </CCol>
+                        <CCol lg={6}>
+                            <CWidgetStatsF
+                                className="mb-3"
+                                color="success"
+                                icon={<CIcon icon={cilChartPie} height={24} />}
+                                padding={false}
+                                title="TRANSAKSI SELESAI"
+                                value={transactionCounts.selesai}
+                            />
+                        </CCol>
+                    </CRow>
                     <CCard className="mb-4">
                         <CCardBody>
                             <CRow>

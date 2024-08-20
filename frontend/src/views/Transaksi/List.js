@@ -30,12 +30,24 @@ const TransaksiList = () => {
     const [detailModalVisible, setDetailModalVisible] = useState(false)
     const [selectedTransaksi, setSelectedTransaksi] = useState(null)
     const [detailTransaksi, setDetailTransaksi] = useState(null) // New state for detail data
+    const [ambilModalVisible, setAmbilModalVisible] = useState(false)
 
     useEffect(() => {
         const fetchTransaksi = async () => {
             try {
                 const response = await axiosInstance.get(`${config.apiUrl}/transaksi`)
-                setTransaksi(response.data)
+                const fetchedTransaksi = response.data
+
+                // Filter transaksi jika role adalah 'penjoki'
+                if (localStorage.getItem('role') === 'penjoki') {
+                    const filteredTransaksi = fetchedTransaksi.filter(
+                        (transaksi) => transaksi.status === 'pending',
+                    )
+                    setTransaksi(filteredTransaksi)
+                } else {
+                    setTransaksi(fetchedTransaksi) // Tampilkan semua transaksi untuk role lain
+                }
+
                 setLoading(false)
             } catch (error) {
                 setError('Gagal mengambil data')
@@ -65,6 +77,36 @@ const TransaksiList = () => {
             setDetailModalVisible(true)
         } catch (error) {
             toast.error('Gagal mengambil detail transaksi')
+        }
+    }
+
+    const handleAmbilClick = (transaksi) => {
+        setSelectedTransaksi(transaksi)
+        setAmbilModalVisible(true)
+    }
+
+    // Fungsi untuk mengarahkan ke URL API
+    const handleSetuju = async () => {
+        try {
+            const ambilValues = {
+                status: 'dikerjakan',
+                take_by: localStorage.getItem('user_id'),
+            }
+
+            // Kirim data transaksi
+            await axiosInstance.put(
+                `${config.apiUrl}/transaksi/ambil/` + selectedTransaksi.id,
+                ambilValues,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                },
+            )
+            toast.success('Transaksi berhasil diambil')
+            window.location.reload()
+        } catch (error) {
+            toast.error('Terjadi kesalahan saat mengambil transaksi ini.')
         }
     }
 
@@ -103,7 +145,7 @@ const TransaksiList = () => {
             name: 'Tipe',
             selector: (row) => row.tipe,
             center: `true`,
-            width: `15%`,
+            width: '15%',
             sortable: true,
             style: {
                 cursor: 'pointer',
@@ -113,7 +155,7 @@ const TransaksiList = () => {
             name: 'Judul',
             selector: (row) => row.judul,
             wrap: true,
-            width: `35%`,
+            width: '35%',
             sortable: true,
             style: {
                 cursor: 'pointer',
@@ -128,6 +170,24 @@ const TransaksiList = () => {
                 cursor: 'pointer',
             },
         },
+        // Tambahkan kolom keuntungan
+
+        // Hapus kolom status jika peran adalah 'penjoki'
+        ...(localStorage.getItem('role') === 'penjoki'
+            ? [
+                  {
+                      name: 'Keuntungan',
+                      selector: (row) => formatRupiah(row.harga * 0.5),
+                      sortable: true,
+                      center: `true`,
+                      style: {
+                          cursor: 'pointer',
+                      },
+                  },
+              ]
+            : []),
+
+        //Kolom status
         {
             name: 'Status',
             selector: (row) => capitalizeFirstLetter(row.status),
@@ -138,36 +198,58 @@ const TransaksiList = () => {
             },
         },
 
-        {
-            name: 'Action',
-            center: `true`,
-            style: {
-                color: 'white',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                textAlign: 'center',
-                cursor: 'pointer',
-            },
-            cell: (row) => (
-                <div>
-                    <Link to={`/transaksi/edit/${row.id}`} className="btn btn-primary btn-sm me-2">
-                        Edit
-                    </Link>
-                    <CButton
-                        color="danger"
-                        className="text-light"
-                        size="sm"
-                        onClick={() => {
-                            setSelectedTransaksi(row.id)
-                            setModalVisible(true)
-                        }}
-                    >
-                        Hapus
-                    </CButton>
-                </div>
-            ),
-        },
+        // Kolom Action hanya jika peran adalah 'admin' atau 'penjoki'
+        ...(localStorage.getItem('role') !== 'owner'
+            ? [
+                  {
+                      name: 'Action',
+                      center: `true`,
+                      style: {
+                          color: 'white',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                      },
+                      cell: (row) => (
+                          <div>
+                              {localStorage.getItem('role') === 'penjoki' && (
+                                  <CButton
+                                      color="success"
+                                      className="text-light"
+                                      size="sm"
+                                      onClick={() => handleAmbilClick(row)}
+                                  >
+                                      Ambil
+                                  </CButton>
+                              )}
+                              {localStorage.getItem('role') === 'admin' && (
+                                  <Link
+                                      to={`/transaksi/edit/${row.id}`}
+                                      className="btn btn-primary btn-sm me-2"
+                                  >
+                                      Edit
+                                  </Link>
+                              )}
+                              {localStorage.getItem('role') === 'admin' && (
+                                  <CButton
+                                      color="danger"
+                                      className="text-light"
+                                      size="sm"
+                                      onClick={() => {
+                                          setSelectedTransaksi(row.id)
+                                          setModalVisible(true)
+                                      }}
+                                  >
+                                      Hapus
+                                  </CButton>
+                              )}
+                          </div>
+                      ),
+                  },
+              ]
+            : []),
     ]
 
     // Filter dan urutkan data
@@ -204,9 +286,11 @@ const TransaksiList = () => {
                         className="form-control"
                         style={{ width: '30%' }}
                     />
-                    <Link to="/transaksi/create" className="btn btn-primary">
-                        Tambah Transaksi
-                    </Link>
+                    {localStorage.getItem('role') === 'admin' && (
+                        <Link to="/transaksi/create" className="btn btn-primary">
+                            Tambah Transaksi
+                        </Link>
+                    )}
                 </div>
                 <CCard className="mb-4">
                     <CCardHeader>
@@ -250,7 +334,7 @@ const TransaksiList = () => {
                     </CCardBody>
                 </CCard>
                 <ToastContainer />
-
+                {/* Modal Delete */}
                 <CModal visible={modalVisible} onClose={() => setModalVisible(false)}>
                     <CModalHeader>
                         <CModalTitle>Konfirmasi Hapus</CModalTitle>
@@ -269,7 +353,7 @@ const TransaksiList = () => {
                         </CButton>
                     </CModalFooter>
                 </CModal>
-
+                {/* Modal Detail */}
                 <CModal visible={detailModalVisible} onClose={() => setDetailModalVisible(false)}>
                     <CModalHeader>
                         <CModalTitle>Detail Transaksi</CModalTitle>
@@ -278,7 +362,7 @@ const TransaksiList = () => {
                         {detailTransaksi ? (
                             <div>
                                 <p>
-                                    <strong>ID:</strong> {detailTransaksi.id}
+                                    <strong>No. Transaksi:</strong> JOKI-{detailTransaksi.id}
                                 </p>
                                 <p>
                                     <strong>Created By:</strong> {detailTransaksi.creator.nama}
@@ -344,6 +428,33 @@ const TransaksiList = () => {
                                         </ul>
                                     </div>
                                 )}
+                                {detailTransaksi.files_selesai &&
+                                    detailTransaksi.files_selesai.length > 0 && (
+                                        <div>
+                                            <strong>Files Selesai:</strong>
+                                            <ul>
+                                                {detailTransaksi.files_selesai.map((file) => (
+                                                    <li key={file.id}>
+                                                        <a
+                                                            href={`${config.apiBiasa}/storage/${file.file}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            style={{
+                                                                display: 'inline',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                maxWidth: '100%',
+                                                                overflowWrap: 'break-word',
+                                                            }}
+                                                        >
+                                                            {'file-selesai-no-' + file.id}
+                                                        </a>
+                                                        {' (' + file.keterangan + ')'}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
                             </div>
                         ) : (
                             <p>Data tidak ditemukan</p>
@@ -352,6 +463,26 @@ const TransaksiList = () => {
                     <CModalFooter>
                         <CButton color="secondary" onClick={() => setDetailModalVisible(false)}>
                             Tutup
+                        </CButton>
+                    </CModalFooter>
+                </CModal>
+                {/* Modal Konfrimasi Ambil */}
+                <CModal visible={ambilModalVisible} onClose={() => setAmbilModalVisible(false)}>
+                    <CModalHeader>
+                        <CModalTitle>Konfirmasi Ambil</CModalTitle>
+                    </CModalHeader>
+                    <CModalBody>
+                        <p>
+                            Harap periksa detail joki sebelum melanjutkan. Jika Anda setuju untuk
+                            mengambilnya, silakan klik "Setuju".
+                        </p>
+                    </CModalBody>
+                    <CModalFooter>
+                        <CButton color="secondary" onClick={() => setAmbilModalVisible(false)}>
+                            Batal
+                        </CButton>
+                        <CButton color="success" className="text-light" onClick={handleSetuju}>
+                            Setuju
                         </CButton>
                     </CModalFooter>
                 </CModal>

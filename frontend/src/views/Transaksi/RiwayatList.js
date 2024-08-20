@@ -19,6 +19,8 @@ import config from '../../config'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import DataTable from 'react-data-table-component'
+import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik'
+import * as Yup from 'yup'
 
 const RiwayatList = () => {
     const [transaksi, setTransaksi] = useState([])
@@ -26,22 +28,36 @@ const RiwayatList = () => {
     const [error, setError] = useState('')
     const [search, setSearch] = useState('')
     const [detailModalVisible, setDetailModalVisible] = useState(false)
+    const [konfirmasiModalVisible, setKonfirmasiModalVisible] = useState(false)
     const [detailTransaksi, setDetailTransaksi] = useState(null) // New state for detail data
+    const [selectedTransaksi, setSelectedTransaksi] = useState(null) // New state for selected transaction
+
+    // Schema validation using Yup
+    const validationSchema = Yup.object().shape({
+        keterangan: Yup.array()
+            .of(
+                Yup.object().shape({
+                    text: Yup.string().required('Keterangan diperlukan'),
+                    file: Yup.mixed().required('File diperlukan'),
+                }),
+            )
+            .required('Setidaknya satu keterangan diperlukan'),
+    })
+
+    const fetchTransaksi = async () => {
+        try {
+            const response = await axiosInstance.get(
+                `${config.apiUrl}/transaksi/riwayat/${localStorage.getItem('user_id')}`,
+            )
+            setTransaksi(response.data)
+        } catch (error) {
+            setError('Gagal mengambil data')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
-        const fetchTransaksi = async () => {
-            try {
-                const response = await axiosInstance.get(
-                    `${config.apiUrl}/transaksi/riwayat/` + localStorage.getItem('user_id'),
-                )
-                setTransaksi(response.data)
-                setLoading(false)
-            } catch (error) {
-                setError('Gagal mengambil data')
-                setLoading(false)
-            }
-        }
-
         fetchTransaksi()
     }, [])
 
@@ -52,6 +68,72 @@ const RiwayatList = () => {
             setDetailModalVisible(true)
         } catch (error) {
             toast.error('Gagal mengambil detail transaksi')
+        }
+    }
+
+    const handleKonfirmasiSelesai = (transaksi) => {
+        setSelectedTransaksi(transaksi)
+        setKonfirmasiModalVisible(true)
+    }
+
+    const handleSubmit = async (values) => {
+        // Pastikan untuk menyertakan ID transaksi yang dipilih
+        if (selectedTransaksi) {
+            const formDataArray = [] // Untuk menyimpan semua FormData untuk unggahan file
+
+            // Loop melalui setiap pasangan keterangan dan file untuk membuat FormData
+            for (const item of values.keterangan) {
+                // Periksa apakah teks dan file ada
+                if (item.text && item.file) {
+                    const formData = new FormData()
+                    formData.append('id_transaksi', selectedTransaksi.id) // Selalu tambahkan ID transaksi
+                    formData.append('keterangan', item.text) // Kirim hanya satu keterangan
+                    formData.append('file', item.file) // Kirim hanya satu file
+                    formDataArray.push(formData) // Simpan FormData untuk pemrosesan nanti
+                } else {
+                    toast.error('Keterangan dan file harus diisi untuk setiap entri!')
+                    return // Keluar jika ada kesalahan dalam input
+                }
+            }
+
+            try {
+                // Loop melalui setiap FormData untuk mengirim permintaan unggahan file
+                for (const formData of formDataArray) {
+                    // Kirim form data ke endpoint API Anda
+                    await axiosInstance.post(`${config.apiUrl}/file-transaksi-selesai`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        },
+                    })
+                }
+
+                // Setelah semua unggahan file, perbarui transaksi
+                const ambilValues = {
+                    status: 'selesai',
+                    take_by: localStorage.getItem('user_id'),
+                }
+
+                // Kirim permintaan pembaruan untuk transaksi
+                await axiosInstance.put(
+                    `${config.apiUrl}/transaksi/ambil/${selectedTransaksi.id}`,
+                    ambilValues,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    },
+                )
+
+                setKonfirmasiModalVisible(false)
+                toast.success('Transaksi berhasil dikonfirmasi')
+                fetchTransaksi() // Ambil ulang data transaksi
+            } catch (error) {
+                console.error('Kesalahan dalam pengiriman:', error) // Log kesalahan untuk debugging
+                if (error.response) {
+                    console.error('Kesalahan respons:', error.response.data) // Log data respons untuk debugging
+                }
+                toast.error('Gagal mengonfirmasi transaksi')
+            }
         }
     }
 
@@ -115,7 +197,6 @@ const RiwayatList = () => {
                 cursor: 'pointer',
             },
         },
-
         {
             name: 'Keuntungan',
             selector: (row) => formatRupiah(row.harga * 0.5),
@@ -127,7 +208,20 @@ const RiwayatList = () => {
         },
         {
             name: 'Status',
-            selector: (row) => capitalizeFirstLetter(row.status),
+            selector: (row) => {
+                if (row.status === 'dikerjakan') {
+                    return (
+                        <CButton
+                            color="success"
+                            className="text-light"
+                            onClick={() => handleKonfirmasiSelesai(row)}
+                        >
+                            Konfirmasi
+                        </CButton>
+                    )
+                }
+                return capitalizeFirstLetter(row.status)
+            },
             sortable: true,
             center: `true`,
             style: {
@@ -157,6 +251,16 @@ const RiwayatList = () => {
             },
         },
     }
+
+    const conditionalRowStyles = [
+        {
+            when: (row) => row.status === 'dikerjakan',
+            style: {
+                backgroundColor: '#f9b115',
+                color: 'black',
+            },
+        },
+    ]
 
     return (
         <CRow>
@@ -207,6 +311,7 @@ const RiwayatList = () => {
                                 pagination
                                 highlightOnHover
                                 customStyles={customStyles}
+                                conditionalRowStyles={conditionalRowStyles}
                                 onRowClicked={handleRowClick}
                             />
                         )}
@@ -222,7 +327,7 @@ const RiwayatList = () => {
                         {detailTransaksi ? (
                             <div>
                                 <p>
-                                    <strong>ID:</strong> {detailTransaksi.id}
+                                    <strong>No. Transaksi:</strong> JOKI-{detailTransaksi.id}
                                 </p>
                                 <p>
                                     <strong>Created By:</strong> {detailTransaksi.creator.nama}
@@ -288,6 +393,33 @@ const RiwayatList = () => {
                                         </ul>
                                     </div>
                                 )}
+                                {detailTransaksi.files_selesai &&
+                                    detailTransaksi.files_selesai.length > 0 && (
+                                        <div>
+                                            <strong>Files Selesai:</strong>
+                                            <ul>
+                                                {detailTransaksi.files_selesai.map((file) => (
+                                                    <li key={file.id}>
+                                                        <a
+                                                            href={`${config.apiBiasa}/storage/${file.file}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            style={{
+                                                                display: 'inline',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                maxWidth: '100%',
+                                                                overflowWrap: 'break-word',
+                                                            }}
+                                                        >
+                                                            {'file-selesai-no-' + file.id}
+                                                        </a>
+                                                        {' (' + file.keterangan + ')'}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
                             </div>
                         ) : (
                             <p>Data tidak ditemukan</p>
@@ -298,6 +430,111 @@ const RiwayatList = () => {
                             Tutup
                         </CButton>
                     </CModalFooter>
+                </CModal>
+
+                <CModal
+                    visible={konfirmasiModalVisible}
+                    onClose={() => setKonfirmasiModalVisible(false)}
+                >
+                    <CModalHeader>
+                        <CModalTitle>Konfirmasi Selesai</CModalTitle>
+                    </CModalHeader>
+                    <Formik
+                        initialValues={{
+                            keterangan: [{ text: '', file: null }],
+                        }}
+                        validationSchema={validationSchema}
+                        onSubmit={handleSubmit}
+                    >
+                        {({ errors, touched, values, setFieldValue }) => (
+                            <Form>
+                                <CModalBody>
+                                    <FieldArray name="keterangan">
+                                        {({ push, remove }) => (
+                                            <div>
+                                                {values.keterangan.map((_, index) => (
+                                                    <div
+                                                        key={`keterangan-${index}`}
+                                                        className="mb-3 card bg-light p-3"
+                                                    >
+                                                        <CRow>
+                                                            <CCol
+                                                                xs={
+                                                                    values.keterangan.length > 1
+                                                                        ? 9
+                                                                        : 12
+                                                                }
+                                                            >
+                                                                <Field
+                                                                    name={`keterangan[${index}].text`}
+                                                                    placeholder="Keterangan"
+                                                                    className={`form-control ${errors.keterangan?.[index]?.text && touched.keterangan?.[index]?.text ? 'is-invalid' : ''}`}
+                                                                />
+                                                                <ErrorMessage
+                                                                    name={`keterangan[${index}].text`}
+                                                                    component="div"
+                                                                    className="invalid-feedback"
+                                                                />
+                                                                <input
+                                                                    type="file"
+                                                                    onChange={(event) => {
+                                                                        setFieldValue(
+                                                                            `keterangan[${index}].file`,
+                                                                            event.currentTarget
+                                                                                .files[0],
+                                                                        )
+                                                                    }}
+                                                                    className={`form-control mt-2 ${errors.keterangan?.[index]?.file && touched.keterangan?.[index]?.file ? 'is-invalid' : ''}`}
+                                                                />
+                                                                <ErrorMessage
+                                                                    name={`keterangan[${index}].file`}
+                                                                    component="div"
+                                                                    className="invalid-feedback"
+                                                                />
+                                                            </CCol>
+                                                            {values.keterangan.length > 1 && (
+                                                                <CCol
+                                                                    xs={3}
+                                                                    className="d-flex align-items-center"
+                                                                >
+                                                                    <CButton
+                                                                        color="danger"
+                                                                        onClick={() =>
+                                                                            remove(index)
+                                                                        }
+                                                                        className="w-100 h-100"
+                                                                    >
+                                                                        Hapus
+                                                                    </CButton>
+                                                                </CCol>
+                                                            )}
+                                                        </CRow>
+                                                    </div>
+                                                ))}
+                                                <CButton
+                                                    color="primary"
+                                                    onClick={() => push({ text: '', file: null })}
+                                                >
+                                                    Tambah
+                                                </CButton>
+                                            </div>
+                                        )}
+                                    </FieldArray>
+                                </CModalBody>
+                                <CModalFooter>
+                                    <CButton
+                                        color="secondary"
+                                        onClick={() => setKonfirmasiModalVisible(false)}
+                                    >
+                                        Tutup
+                                    </CButton>
+                                    <CButton color="success" className="text-light" type="submit">
+                                        Konfirmasi
+                                    </CButton>
+                                </CModalFooter>
+                            </Form>
+                        )}
+                    </Formik>
                 </CModal>
             </CCol>
         </CRow>
