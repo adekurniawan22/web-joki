@@ -1,6 +1,7 @@
 import React from 'react'
 
 const Login = React.lazy(() => import('./views/pages/login/Login'))
+const Profil = React.lazy(() => import('./views/profil/Profil'))
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const AddUser = React.lazy(() => import('./views/user/Add'))
 const EditUser = React.lazy(() => import('./views/user/Edit'))
@@ -33,6 +34,7 @@ const getRoutes = () => {
                     name: 'Edit Transaksi',
                     element: EditTransaksi,
                 },
+                { path: '/profil', name: 'Profil', element: Profil },
             ]
             break
         case 'admin':
@@ -49,6 +51,7 @@ const getRoutes = () => {
                     name: 'Edit Transaksi',
                     element: EditTransaksi,
                 },
+                { path: '/profil', name: 'Profil', element: Profil },
             ]
             break
         case 'penjoki':
@@ -75,6 +78,7 @@ const getRoutes = () => {
                     name: 'Leaderboard',
                     element: Leaderboard,
                 },
+                { path: '/profil', name: 'Profil', element: Profil },
             ]
             break
         default:
