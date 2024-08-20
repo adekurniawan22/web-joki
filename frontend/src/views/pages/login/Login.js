@@ -15,8 +15,10 @@ import {
     CRow,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
+import { ToastContainer, toast } from 'react-toastify'
 import { cilLockLocked, cilUser } from '@coreui/icons'
 import config from '../../../config'
+import banner from './../../../../src/assets/images/banner.png'
 
 const Login = () => {
     const [email, setEmail] = useState('')
@@ -56,14 +58,15 @@ const Login = () => {
             localStorage.setItem('role', data.role)
             localStorage.setItem('expires_at', data.expires_at)
 
-            // Redirect ke halaman dashboard
             navigate('/dashboard')
         } catch (err) {
             if (err.response) {
                 // Jika server memberi respons dengan status kode yang tidak berada dalam rentang 2xx
                 setError(err.response.data.message || 'Login failed')
+                toast.error('Gagal Login!')
             } else {
                 // Terjadi kesalahan saat mengatur permintaan
+                toast.error('Gagal Login!')
                 setError('An error occurred. Please try again.')
             }
         }
@@ -121,21 +124,24 @@ const Login = () => {
                                     </CForm>
                                 </CCardBody>
                             </CCard>
-                            <CCard className="text-white bg-primary py-5 " style={{ width: '44%' }}>
+                            <CCard
+                                className="text-white py-5"
+                                style={{
+                                    width: '44%',
+                                    backgroundImage: `url(${banner})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                    color: 'white',
+                                }}
+                            >
                                 <CCardBody className="text-center d-flex justify-content-center align-items-center">
-                                    <div>
-                                        <h2>Sign up</h2>
-                                        <p>
-                                            Lorem ipsum dolor sit amet, consectetur adipisicing
-                                            elit, sed do eiusmod tempor incididunt ut labore et
-                                            dolore magna aliqua.
-                                        </p>
-                                    </div>
+                                    <div></div>
                                 </CCardBody>
                             </CCard>
                         </CCardGroup>
                     </CCol>
                 </CRow>
+                <ToastContainer />
             </CContainer>
         </div>
     )

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import config from '../../../config'
+import { ToastContainer, toast } from 'react-toastify'
 
 const Logout = () => {
     const navigate = useNavigate()
@@ -29,8 +30,10 @@ const Logout = () => {
                 localStorage.removeItem('token')
                 localStorage.removeItem('role')
                 localStorage.removeItem('expires_at')
+                localStorage.removeItem('dashboardToastShown')
 
                 // Redirect to login page
+                toast.success('Berhasil Logout!')
                 navigate('/login')
             } catch (error) {
                 console.error('Error during logout:', error)
