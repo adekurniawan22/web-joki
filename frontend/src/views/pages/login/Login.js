@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
@@ -23,6 +23,13 @@ const Login = () => {
     const [password, setPassword] = useState('')
     const [error, setError] = useState(null)
     const navigate = useNavigate()
+
+    // Cek role di localStorage dan arahkan ke dashboard jika ada
+    useEffect(() => {
+        if (localStorage.getItem('role')) {
+            navigate('/dashboard')
+        }
+    }, [navigate])
 
     const handleLogin = async (e) => {
         e.preventDefault()
@@ -49,11 +56,11 @@ const Login = () => {
             localStorage.setItem('role', data.role)
             localStorage.setItem('expires_at', data.expires_at)
 
-            // Redirect atau lakukan tindakan setelah login
-            navigate('/dashboard') // Misalnya, redirect ke halaman dashboard
+            // Redirect ke halaman dashboard
+            navigate('/dashboard')
         } catch (err) {
             if (err.response) {
-                // Request dibuat dan server memberikan respons dengan status kode yang tidak berada dalam rentang 2xx
+                // Jika server memberi respons dengan status kode yang tidak berada dalam rentang 2xx
                 setError(err.response.data.message || 'Login failed')
             } else {
                 // Terjadi kesalahan saat mengatur permintaan

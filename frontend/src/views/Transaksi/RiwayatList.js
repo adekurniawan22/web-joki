@@ -111,7 +111,12 @@ const RiwayatList = () => {
                 const ambilValues = {
                     status: 'selesai',
                     take_by: localStorage.getItem('user_id'),
+                    tgl_selesai: new Date().toLocaleString('en-CA', {
+                        timeZone: 'Asia/Jakarta',
+                    }), // Menambahkan tanggal selesai dengan waktu sekarang di zona waktu Indonesia
                 }
+
+                console.log(ambilValues)
 
                 // Kirim permintaan pembaruan untuk transaksi
                 await axiosInstance.put(
