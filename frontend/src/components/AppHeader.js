@@ -106,7 +106,7 @@ const AppHeader = () => {
                     <li className="nav-item py-1">
                         <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
                     </li>
-                    <div className="d-flex justify-content-center align-items-center">
+                    <div className="d-flex justify-content-center align-items-center h6 pt-2">
                         {users.nama} (
                         {users.role
                             ? users.role.charAt(0).toUpperCase() + users.role.slice(1).toLowerCase()

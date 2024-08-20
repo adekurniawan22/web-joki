@@ -1,30 +1,17 @@
-// src/components/AppSidebar.js
-
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-
 import {
     CCloseButton,
     CSidebar,
-    CSidebarBrand,
     CSidebarFooter,
     CSidebarHeader,
     CSidebarToggler,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-
 import { AppSidebarNav } from './AppSidebarNav'
-
-import { logo } from 'src/assets/brand/logo'
-import { sygnet } from 'src/assets/brand/sygnet'
-
-// sidebar nav config
+import logo from '../../src/assets/images/logo.png'
 import _nav from '../_nav'
 
-// Mendefinisikan menu default yang umum untuk semua role
 const defaultMenu = ['Akun', 'Profil', 'Logout']
-
-// Mendefinisikan menu khusus per role
 const roleBasedMenu = {
     owner: ['Dashboard', 'User', 'Transaksi'],
     admin: ['Dashboard', 'Transaksi'],
@@ -38,17 +25,15 @@ const AppSidebar = () => {
     const [role, setRole] = useState('')
 
     useEffect(() => {
-        // Ambil role dari localStorage
         const userRole = localStorage.getItem('role')
         setRole(userRole)
     }, [])
 
-    // Filter navigasi berdasarkan role
     const navigation = _nav.filter((item) => {
         if (roleBasedMenu[role]) {
             return roleBasedMenu[role].includes(item.name) || defaultMenu.includes(item.name)
         }
-        return defaultMenu.includes(item.name) // Menampilkan menu default jika role tidak dikenali
+        return defaultMenu.includes(item.name)
     })
 
     return (
@@ -63,10 +48,12 @@ const AppSidebar = () => {
             }}
         >
             <CSidebarHeader className="border-bottom">
-                <CSidebarBrand to="/">
-                    <CIcon customClassName="sidebar-brand-full" icon={logo} height={32} />
-                    <CIcon customClassName="sidebar-brand-narrow" icon={sygnet} height={32} />
-                </CSidebarBrand>
+                <div className="d-flex justify-content-center align-items-center">
+                    <img src={logo} alt="" height={40} />
+                    <span className="ms-2 d-inline-block" style={{ fontSize: '1.5em' }}>
+                        JOKI PRO
+                    </span>
+                </div>
                 <CCloseButton
                     className="d-lg-none"
                     dark

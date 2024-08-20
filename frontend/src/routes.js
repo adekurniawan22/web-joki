@@ -1,16 +1,16 @@
 import React from 'react'
 
 const Login = React.lazy(() => import('./views/pages/login/Login'))
-const Profil = React.lazy(() => import('./views/profil/Profil'))
-const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
-const AddUser = React.lazy(() => import('./views/user/Add'))
-const EditUser = React.lazy(() => import('./views/user/Edit'))
-const UserList = React.lazy(() => import('./views/user/List'))
-const TransaksiList = React.lazy(() => import('./views/transaksi/List'))
-const AddTransaksi = React.lazy(() => import('./views/transaksi/Add'))
-const EditTransaksi = React.lazy(() => import('./views/transaksi/Edit'))
-const RiwayatList = React.lazy(() => import('./views/transaksi/RiwayatList'))
-const Leaderboard = React.lazy(() => import('./views/leaderboard/Leaderboard'))
+const Profil = React.lazy(() => import('./views/pages/profil/Profil'))
+const Dashboard = React.lazy(() => import('./views/pages/dashboard/Dashboard'))
+const AddUser = React.lazy(() => import('./views/pages/user/Add'))
+const EditUser = React.lazy(() => import('./views/pages/user/Edit'))
+const UserList = React.lazy(() => import('./views/pages/user/List'))
+const TransaksiList = React.lazy(() => import('./views/pages/transaksi/List'))
+const AddTransaksi = React.lazy(() => import('./views/pages/transaksi/Add'))
+const EditTransaksi = React.lazy(() => import('./views/pages/transaksi/Edit'))
+const RiwayatList = React.lazy(() => import('./views/pages/transaksi/RiwayatList'))
+const Leaderboard = React.lazy(() => import('./views/pages/leaderboard/Leaderboard'))
 
 const getRoutes = () => {
     const role = localStorage.getItem('role')
@@ -35,6 +35,7 @@ const getRoutes = () => {
                     element: EditTransaksi,
                 },
                 { path: '/profil', name: 'Profil', element: Profil },
+                { path: '/login', name: 'Login', element: Login },
             ]
             break
         case 'admin':
@@ -52,6 +53,7 @@ const getRoutes = () => {
                     element: EditTransaksi,
                 },
                 { path: '/profil', name: 'Profil', element: Profil },
+                { path: '/login', name: 'Login', element: Login },
             ]
             break
         case 'penjoki':
@@ -79,6 +81,7 @@ const getRoutes = () => {
                     element: Leaderboard,
                 },
                 { path: '/profil', name: 'Profil', element: Profil },
+                { path: '/login', name: 'Login', element: Login },
             ]
             break
         default:
@@ -98,6 +101,7 @@ const getRoutes = () => {
                     name: 'Edit Transaksi',
                     element: EditTransaksi,
                 },
+                { path: '/login', name: 'Login', element: Login },
             ]
     }
 
