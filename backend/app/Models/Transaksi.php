@@ -47,6 +47,11 @@ class Transaksi extends Model
         return $this->hasMany(FileTransaksi::class, 'id_transaksi', 'id')->select(['id', 'id_transaksi', 'keterangan', 'file']);
     }
 
+    public function files_selesai()
+    {
+        return $this->hasMany(FileTransaksiSelesai::class, 'id_transaksi', 'id')->select(['id', 'id_transaksi', 'keterangan', 'file']);
+    }
+
     public static function topPenjoki($limit = null)
     {
         $query = DB::table('user')

@@ -6,18 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class TransaksiController extends Controller
 {
     public function index()
     {
-        $transaksi = Transaksi::with(['creator:id,nama', 'taker:id,nama', 'files'])->get();
+        $transaksi = Transaksi::with(['creator:id,nama', 'taker:id,nama', 'files', 'files_selesai'])->get();
         return response()->json($transaksi, 200);
     }
 
     public function show($id)
     {
-        $transaksi = Transaksi::with(['creator:id,nama', 'taker:id,nama', 'files'])->find($id);
+        $transaksi = Transaksi::with(['creator:id,nama', 'taker:id,nama', 'files', 'files_selesai'])->find($id);
         if ($transaksi) {
             return response()->json($transaksi, 200);
         }
@@ -111,8 +112,24 @@ class TransaksiController extends Controller
 
     public function destroy($id)
     {
-        $transaksi = Transaksi::with(['creator:id,nama', 'taker:id,nama', 'files'])->find($id);
+        $transaksi = Transaksi::with(['creator:id,nama', 'taker:id,nama', 'files', 'files_selesai'])->find($id);
         if ($transaksi) {
+
+            // Delete associated FileTransaksi records
+            foreach ($transaksi->files as $fileTransaksi) {
+                // Delete the file from storage
+                Storage::disk('public')->delete($fileTransaksi->file);
+                // Delete the FileTransaksi record
+                $fileTransaksi->delete();
+            }
+
+            foreach ($transaksi->files_selesai as $fileTransaksi) {
+                // Delete the file from storage
+                Storage::disk('public')->delete($fileTransaksi->file);
+                // Delete the FileTransaksi record
+                $fileTransaksi->delete();
+            }
+
             $transaksi->delete();
             return response()->json([
                 'message' => 'Transaction deleted successfully',
@@ -122,11 +139,44 @@ class TransaksiController extends Controller
         return response()->json(['message' => 'Transaction not found'], 404);
     }
 
+
+    public function ambilJoki(Request $request, $id)
+    {
+        // Validasi input untuk transaksi
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string|in:pending,dikerjakan,selesai',
+            'take_by' => 'nullable|exists:user,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Temukan transaksi
+        $transaksi = Transaksi::findOrFail($id);
+
+        // Update transaksi
+        $transaksi->update([
+            'status' => $request->status,
+            'take_by' => $request->take_by ?? null,
+        ]);
+
+        // Return response
+        return response()->json([
+            'message' => 'Transaction take successfully',
+            'data' => $transaksi,
+        ], 200);
+    }
+
+
     public function riwayatTransaksi($id_penjoki)
     {
         // Mendapatkan transaksi berdasarkan id_penjoki dan mengurutkannya berdasarkan id dalam urutan menurun
         $transaksi = Transaksi::with(['creator:id,nama', 'taker:id,nama', 'files'])
-            ->where('status', 'selesai') // Menambahkan kondisi where untuk memfilter berdasarkan id_penjoki
+            ->whereIn('status', ['selesai', 'dikerjakan']) // Menambahkan kondisi where untuk memfilter berdasarkan id_penjoki
             ->where('take_by', $id_penjoki) // Menambahkan kondisi where untuk memfilter berdasarkan id_penjoki
             ->orderBy('id', 'desc') // Mengurutkan hasil berdasarkan kolom id dalam urutan menurun
             ->get();
