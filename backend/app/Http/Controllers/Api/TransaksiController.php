@@ -162,6 +162,7 @@ class TransaksiController extends Controller
         $transaksi->update([
             'status' => $request->status,
             'take_by' => $request->take_by ?? null,
+            'tgl_selesai' => $request->tgl_selesai ?? null,
         ]);
 
         // Return response
