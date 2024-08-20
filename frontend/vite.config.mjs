@@ -5,7 +5,7 @@ import autoprefixer from 'autoprefixer'
 
 export default defineConfig(() => {
     return {
-        base: './',
+        base: '/web-joki/',
         build: {
             outDir: 'build',
         },
