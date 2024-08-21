@@ -62,6 +62,16 @@ const Leaderboard = () => {
         item.nama.toLowerCase().includes(search.toLowerCase()),
     )
 
+    const customStyles = {
+        headCells: {
+            style: {
+                backgroundColor: '#f8f9fa',
+                color: '#333',
+                fontWeight: 'bold',
+            },
+        },
+    }
+
     // Mengatur warna baris berdasarkan kondisi
     const conditionalRowStyles = [
         {
@@ -119,6 +129,7 @@ const Leaderboard = () => {
                                 className="hover"
                                 columns={columns}
                                 data={filteredLeaderboard}
+                                customStyles={customStyles}
                                 pagination
                                 highlightOnHover
                                 conditionalRowStyles={conditionalRowStyles} // Menambahkan gaya baris kondisi

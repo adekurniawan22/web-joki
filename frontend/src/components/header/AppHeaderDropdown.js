@@ -1,7 +1,5 @@
 import React from 'react'
 import { CAvatar, CDropdown, CDropdownToggle } from '@coreui/react'
-
-import avatar8 from './../../assets/images/avatars/8.jpg'
 import user from '../../assets/images/user.jpg'
 
 const AppHeaderDropdown = () => {

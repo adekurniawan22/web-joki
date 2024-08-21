@@ -103,8 +103,12 @@ const TransaksiList = () => {
                     },
                 },
             )
-            toast.success('Transaksi berhasil diambil')
-            window.location.reload()
+            setAmbilModalVisible(false)
+            toast.success('Transaksi berhasil diambil, silahkan cek riwayat transaksi!', {
+                onClose: () => {
+                    window.location.reload() // Refresh setelah toast ditutup
+                },
+            })
         } catch (error) {
             toast.error('Terjadi kesalahan saat mengambil transaksi ini.')
         }
@@ -472,10 +476,8 @@ const TransaksiList = () => {
                         <CModalTitle>Konfirmasi Ambil</CModalTitle>
                     </CModalHeader>
                     <CModalBody>
-                        <p>
-                            Harap periksa detail joki sebelum melanjutkan. Jika Anda setuju untuk
-                            mengambilnya, silakan klik "Setuju".
-                        </p>
+                        <p className="mb-0">Harap periksa detail joki sebelum melanjutkan.</p>
+                        <p>Jika Anda setuju untuk mengambilnya, silakan klik "Setuju".</p>
                     </CModalBody>
                     <CModalFooter>
                         <CButton color="secondary" onClick={() => setAmbilModalVisible(false)}>

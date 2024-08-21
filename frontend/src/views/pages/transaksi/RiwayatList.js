@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../../axiosConfig'
 import {
     CCol,
     CRow,
@@ -15,12 +14,12 @@ import {
     CModalBody,
     CModalFooter,
 } from '@coreui/react'
-import config from '../../../config'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import DataTable from 'react-data-table-component'
-import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
+import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik'
+import { toast } from 'react-toastify'
+import DataTable from 'react-data-table-component'
+import config from '../../../config'
+import axiosInstance from '../../../axiosConfig'
 
 const RiwayatList = () => {
     const [transaksi, setTransaksi] = useState([])
@@ -29,10 +28,9 @@ const RiwayatList = () => {
     const [search, setSearch] = useState('')
     const [detailModalVisible, setDetailModalVisible] = useState(false)
     const [konfirmasiModalVisible, setKonfirmasiModalVisible] = useState(false)
-    const [detailTransaksi, setDetailTransaksi] = useState(null) // New state for detail data
-    const [selectedTransaksi, setSelectedTransaksi] = useState(null) // New state for selected transaction
+    const [detailTransaksi, setDetailTransaksi] = useState(null)
+    const [selectedTransaksi, setSelectedTransaksi] = useState(null)
 
-    // Schema validation using Yup
     const validationSchema = Yup.object().shape({
         keterangan: Yup.array()
             .of(
@@ -64,7 +62,7 @@ const RiwayatList = () => {
     const handleRowClick = async (row) => {
         try {
             const response = await axiosInstance.get(`${config.apiUrl}/transaksi/${row.id}`)
-            setDetailTransaksi(response.data) // Set detail data
+            setDetailTransaksi(response.data)
             setDetailModalVisible(true)
         } catch (error) {
             toast.error('Gagal mengambil detail transaksi')
@@ -77,29 +75,23 @@ const RiwayatList = () => {
     }
 
     const handleSubmit = async (values) => {
-        // Pastikan untuk menyertakan ID transaksi yang dipilih
         if (selectedTransaksi) {
-            const formDataArray = [] // Untuk menyimpan semua FormData untuk unggahan file
-
-            // Loop melalui setiap pasangan keterangan dan file untuk membuat FormData
+            const formDataArray = []
             for (const item of values.keterangan) {
-                // Periksa apakah teks dan file ada
                 if (item.text && item.file) {
                     const formData = new FormData()
-                    formData.append('id_transaksi', selectedTransaksi.id) // Selalu tambahkan ID transaksi
-                    formData.append('keterangan', item.text) // Kirim hanya satu keterangan
-                    formData.append('file', item.file) // Kirim hanya satu file
-                    formDataArray.push(formData) // Simpan FormData untuk pemrosesan nanti
+                    formData.append('id_transaksi', selectedTransaksi.id)
+                    formData.append('keterangan', item.text)
+                    formData.append('file', item.file)
+                    formDataArray.push(formData)
                 } else {
                     toast.error('Keterangan dan file harus diisi untuk setiap entri!')
-                    return // Keluar jika ada kesalahan dalam input
+                    return
                 }
             }
 
             try {
-                // Loop melalui setiap FormData untuk mengirim permintaan unggahan file
                 for (const formData of formDataArray) {
-                    // Kirim form data ke endpoint API Anda
                     await axiosInstance.post(`${config.apiUrl}/file-transaksi-selesai`, formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data',
@@ -107,18 +99,14 @@ const RiwayatList = () => {
                     })
                 }
 
-                // Setelah semua unggahan file, perbarui transaksi
                 const ambilValues = {
                     status: 'selesai',
                     take_by: localStorage.getItem('user_id'),
                     tgl_selesai: new Date().toLocaleString('en-CA', {
                         timeZone: 'Asia/Jakarta',
-                    }), // Menambahkan tanggal selesai dengan waktu sekarang di zona waktu Indonesia
+                    }),
                 }
 
-                console.log(ambilValues)
-
-                // Kirim permintaan pembaruan untuk transaksi
                 await axiosInstance.put(
                     `${config.apiUrl}/transaksi/ambil/${selectedTransaksi.id}`,
                     ambilValues,
@@ -130,13 +118,9 @@ const RiwayatList = () => {
                 )
 
                 setKonfirmasiModalVisible(false)
+                fetchTransaksi()
                 toast.success('Transaksi berhasil dikonfirmasi')
-                fetchTransaksi() // Ambil ulang data transaksi
             } catch (error) {
-                console.error('Kesalahan dalam pengiriman:', error) // Log kesalahan untuk debugging
-                if (error.response) {
-                    console.error('Kesalahan respons:', error.response.data) // Log data respons untuk debugging
-                }
                 toast.error('Gagal mengonfirmasi transaksi')
             }
         }
@@ -235,7 +219,6 @@ const RiwayatList = () => {
         },
     ]
 
-    // Filter dan urutkan data
     const filteredTransaksi = transaksi.filter(
         (transaksi) =>
             transaksi.tipe.toLowerCase().includes(search.toLowerCase()) ||
@@ -243,10 +226,8 @@ const RiwayatList = () => {
             transaksi.status.toLowerCase().includes(search.toLowerCase()),
     )
 
-    // Urutkan data berdasarkan ID secara menurun
     const sortedTransaksi = [...filteredTransaksi].sort((a, b) => b.id - a.id)
 
-    // Define custom styles for DataTable
     const customStyles = {
         headCells: {
             style: {
@@ -322,7 +303,6 @@ const RiwayatList = () => {
                         )}
                     </CCardBody>
                 </CCard>
-                <ToastContainer />
 
                 <CModal visible={detailModalVisible} onClose={() => setDetailModalVisible(false)}>
                     <CModalHeader>

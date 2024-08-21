@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
     CCol,
     CFormInput,
@@ -10,12 +11,12 @@ import {
     CCardBody,
     CAvatar,
 } from '@coreui/react'
-import { toast } from 'react-toastify'
-import { Formik, Field, ErrorMessage, Form } from 'formik'
 import * as Yup from 'yup'
+import { Formik, Field, ErrorMessage, Form } from 'formik'
+import { toast } from 'react-toastify'
 import axiosInstance from '../../../axiosConfig'
 import config from '../../../config'
-import { useNavigate } from 'react-router-dom'
+import user from '../../../assets/images/user.jpg'
 
 const Profil = () => {
     const navigate = useNavigate()
@@ -29,7 +30,6 @@ const Profil = () => {
         role: '',
     })
 
-    // Schema validasi menggunakan Yup
     const validationSchema = Yup.object({
         nama: Yup.string().required('Nama tidak boleh kosong'),
         email: Yup.string().email('Email tidak valid').required('Email tidak boleh kosong'),
@@ -42,10 +42,9 @@ const Profil = () => {
 
     const handleSubmit = async (values, { setSubmitting }) => {
         try {
-            // Tambahkan nilai role ke dalam values
             const updatedValues = {
                 ...values,
-                role: localStorage.getItem('role'), // Pastikan initialValues.role terdefinisi
+                role: localStorage.getItem('role'),
             }
 
             await axiosInstance.put(`${config.apiUrl}/users/${id}`, updatedValues, {
@@ -54,8 +53,11 @@ const Profil = () => {
                 },
             })
 
-            toast.success('Data berhasil diperbarui!')
-            window.location.reload()
+            toast.success('Data berhasil diperbarui!', {
+                onClose: () => {
+                    window.location.reload() // Refresh setelah toast ditutup
+                },
+            })
         } catch (error) {
             toast.error('Terjadi kesalahan saat memperbarui data.')
         }
@@ -86,9 +88,14 @@ const Profil = () => {
                     <CCardBody>
                         <div className="d-flex flex-column justify-content-center align-items-center">
                             <CAvatar
+                                src={user}
                                 color="secondary"
                                 size="xl"
-                                style={{ height: '100px', width: '100px' }}
+                                style={{
+                                    height: '100px',
+                                    width: '100px',
+                                    border: '1px solid black',
+                                }}
                             >
                                 User
                             </CAvatar>

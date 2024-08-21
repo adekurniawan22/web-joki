@@ -50,8 +50,8 @@ const AppSidebar = () => {
             <CSidebarHeader className="border-bottom">
                 <div className="d-flex justify-content-center align-items-center">
                     <img src={logo} alt="" height={40} />
-                    <span className="ms-2 d-inline-block" style={{ fontSize: '1.5em' }}>
-                        JOKI PRO
+                    <span className="ms-2 d-inline-block" style={{ fontSize: '1.7em' }}>
+                        JokiPro
                     </span>
                 </div>
                 <CCloseButton
