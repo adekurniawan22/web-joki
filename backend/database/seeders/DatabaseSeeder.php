@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             TransaksiSeeder::class,
-            FileTransaksiSeeder::class,
+            // FileTransaksiSeeder::class,
         ]);
     }
 }
@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
         $faker = Faker::create('id_ID');
 
         // Define the number of users for each role
-        $ownerCount = 2;
+        $ownerCount = 1;
         $adminCount = 3;
         $totalUsers = 10;
         $penjokiCount = $totalUsers - ($ownerCount + $adminCount);
@@ -80,9 +80,9 @@ class TransaksiSeeder extends Seeder
         $faker = Faker::create('id_ID');
 
         // Define the number of transactions for each status
-        $pendingCount = 10;
+        $pendingCount = 15;
         $dikerjakanCount = 5;
-        $selesaiCount = 50;
+        $selesaiCount = 20;
 
         // Create transactions with statuses
         $statuses = array_merge(
