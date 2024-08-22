@@ -9,9 +9,7 @@ import axiosInstance from '../../../axiosConfig'
 import { ToastContainer, toast } from 'react-toastify'
 
 const Dashboard = () => {
-    console.log(localStorage.getItem('token'))
     useEffect(() => {
-        // Cek apakah toast sudah pernah ditampilkan
         const toastShown = localStorage.getItem('dashboardToastShown')
 
         if (!toastShown) {
@@ -57,13 +55,11 @@ const Dashboard = () => {
     const [tahun, setTahun] = useState('')
     const chartRef = useRef(null)
 
-    // Set role from localStorage
     useEffect(() => {
         const storedRole = localStorage.getItem('role')
         setRole(storedRole)
     }, [])
 
-    // Fetch data based on role
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -182,7 +178,6 @@ const Dashboard = () => {
         }
     }, [role])
 
-    // Update chart styles on color scheme change
     useEffect(() => {
         const handleColorSchemeChange = () => {
             if (chartRef.current) {

@@ -16,14 +16,14 @@ const AppContent = () => {
                                 <Route
                                     key={idx}
                                     path={route.path}
-                                    exact={route.exact} // Pastikan Anda menggunakan `exact` jika Anda menggunakan React Router v5, v6 tidak memerlukan `exact`
+                                    exact={route.exact}
                                     name={route.name}
                                     element={<route.element />}
                                 />
                             )
                         )
                     })}
-                    <Route path="*" element={<Navigate to="/500" replace />} />
+                    <Route path="*" element={<Navigate to="/404" replace />} />
                 </Routes>
             </Suspense>
         </CContainer>

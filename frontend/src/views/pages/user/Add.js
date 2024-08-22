@@ -34,7 +34,6 @@ const FormTambahUser = () => {
 
     const handleSubmit = async (values, { setSubmitting }) => {
         try {
-            console.log(values)
             await axiosInstance.post(`${config.apiUrl}/users`, values, {
                 headers: {
                     'Content-Type': 'application/json',

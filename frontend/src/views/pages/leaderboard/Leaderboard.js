@@ -72,7 +72,6 @@ const Leaderboard = () => {
         },
     }
 
-    // Mengatur warna baris berdasarkan kondisi
     const conditionalRowStyles = [
         {
             when: (row) => row.id.toString() === userId,
@@ -132,7 +131,7 @@ const Leaderboard = () => {
                                 customStyles={customStyles}
                                 pagination
                                 highlightOnHover
-                                conditionalRowStyles={conditionalRowStyles} // Menambahkan gaya baris kondisi
+                                conditionalRowStyles={conditionalRowStyles}
                             />
                         )}
                     </CCardBody>

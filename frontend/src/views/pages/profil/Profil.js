@@ -55,7 +55,7 @@ const Profil = () => {
 
             toast.success('Data berhasil diperbarui!', {
                 onClose: () => {
-                    window.location.reload() // Refresh setelah toast ditutup
+                    window.location.reload()
                 },
             })
         } catch (error) {
