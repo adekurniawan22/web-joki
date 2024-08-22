@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../../axiosConfig'
+import { Link } from 'react-router-dom'
 import {
     CCol,
     CRow,
@@ -15,11 +15,10 @@ import {
     CModalBody,
     CModalFooter,
 } from '@coreui/react'
-import { Link } from 'react-router-dom'
-import config from '../../../config'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
+import config from '../../../config'
+import axiosInstance from '../../../axiosConfig'
 
 const TransaksiList = () => {
     const [transaksi, setTransaksi] = useState([])
@@ -29,7 +28,7 @@ const TransaksiList = () => {
     const [modalVisible, setModalVisible] = useState(false)
     const [detailModalVisible, setDetailModalVisible] = useState(false)
     const [selectedTransaksi, setSelectedTransaksi] = useState(null)
-    const [detailTransaksi, setDetailTransaksi] = useState(null) // New state for detail data
+    const [detailTransaksi, setDetailTransaksi] = useState(null)
     const [ambilModalVisible, setAmbilModalVisible] = useState(false)
 
     useEffect(() => {
@@ -38,14 +37,13 @@ const TransaksiList = () => {
                 const response = await axiosInstance.get(`${config.apiUrl}/transaksi`)
                 const fetchedTransaksi = response.data
 
-                // Filter transaksi jika role adalah 'penjoki'
                 if (localStorage.getItem('role') === 'penjoki') {
                     const filteredTransaksi = fetchedTransaksi.filter(
                         (transaksi) => transaksi.status === 'pending',
                     )
                     setTransaksi(filteredTransaksi)
                 } else {
-                    setTransaksi(fetchedTransaksi) // Tampilkan semua transaksi untuk role lain
+                    setTransaksi(fetchedTransaksi)
                 }
 
                 setLoading(false)
@@ -85,7 +83,6 @@ const TransaksiList = () => {
         setAmbilModalVisible(true)
     }
 
-    // Fungsi untuk mengarahkan ke URL API
     const handleSetuju = async () => {
         try {
             const ambilValues = {
@@ -93,7 +90,6 @@ const TransaksiList = () => {
                 take_by: localStorage.getItem('user_id'),
             }
 
-            // Kirim data transaksi
             await axiosInstance.put(
                 `${config.apiUrl}/transaksi/ambil/` + selectedTransaksi.id,
                 ambilValues,
@@ -106,7 +102,7 @@ const TransaksiList = () => {
             setAmbilModalVisible(false)
             toast.success('Transaksi berhasil diambil, silahkan cek riwayat transaksi!', {
                 onClose: () => {
-                    window.location.reload() // Refresh setelah toast ditutup
+                    window.location.reload()
                 },
             })
         } catch (error) {
@@ -174,9 +170,7 @@ const TransaksiList = () => {
                 cursor: 'pointer',
             },
         },
-        // Tambahkan kolom keuntungan
 
-        // Hapus kolom status jika peran adalah 'penjoki'
         ...(localStorage.getItem('role') === 'penjoki'
             ? [
                   {
@@ -191,7 +185,6 @@ const TransaksiList = () => {
               ]
             : []),
 
-        //Kolom status
         {
             name: 'Status',
             selector: (row) => capitalizeFirstLetter(row.status),
@@ -202,7 +195,6 @@ const TransaksiList = () => {
             },
         },
 
-        // Kolom Action hanya jika peran adalah 'admin' atau 'penjoki'
         ...(localStorage.getItem('role') !== 'owner'
             ? [
                   {
@@ -256,7 +248,6 @@ const TransaksiList = () => {
             : []),
     ]
 
-    // Filter dan urutkan data
     const filteredTransaksi = transaksi.filter(
         (transaksi) =>
             transaksi.tipe.toLowerCase().includes(search.toLowerCase()) ||
@@ -264,10 +255,8 @@ const TransaksiList = () => {
             transaksi.status.toLowerCase().includes(search.toLowerCase()),
     )
 
-    // Urutkan data berdasarkan ID secara menurun
     const sortedTransaksi = [...filteredTransaksi].sort((a, b) => b.id - a.id)
 
-    // Define custom styles for DataTable
     const customStyles = {
         headCells: {
             style: {
@@ -337,7 +326,7 @@ const TransaksiList = () => {
                         )}
                     </CCardBody>
                 </CCard>
-                <ToastContainer />
+
                 {/* Modal Delete */}
                 <CModal visible={modalVisible} onClose={() => setModalVisible(false)}>
                     <CModalHeader>
@@ -357,6 +346,7 @@ const TransaksiList = () => {
                         </CButton>
                     </CModalFooter>
                 </CModal>
+
                 {/* Modal Detail */}
                 <CModal visible={detailModalVisible} onClose={() => setDetailModalVisible(false)}>
                     <CModalHeader>
@@ -369,7 +359,7 @@ const TransaksiList = () => {
                                     <strong>No. Transaksi:</strong> JOKI-{detailTransaksi.id}
                                 </p>
                                 <p>
-                                    <strong>Created By:</strong> {detailTransaksi.creator.nama}
+                                    <strong>Dibuat Oleh:</strong> {detailTransaksi.creator.nama}
                                 </p>
                                 <p>
                                     <strong>Tipe:</strong> {detailTransaksi.tipe}
@@ -394,7 +384,7 @@ const TransaksiList = () => {
                                 </p>
                                 {detailTransaksi.take_by ? (
                                     <p>
-                                        <strong>Take By:</strong> {detailTransaksi.taker.nama}
+                                        <strong>Diambil Oleh:</strong> {detailTransaksi.taker.nama}
                                     </p>
                                 ) : (
                                     ''
@@ -408,7 +398,7 @@ const TransaksiList = () => {
                                 </p>
                                 {detailTransaksi.files && detailTransaksi.files.length > 0 && (
                                     <div>
-                                        <strong>Files:</strong>
+                                        <strong>File Transaksi:</strong>
                                         <ul>
                                             {detailTransaksi.files.map((file) => (
                                                 <li key={file.id}>
@@ -435,7 +425,7 @@ const TransaksiList = () => {
                                 {detailTransaksi.files_selesai &&
                                     detailTransaksi.files_selesai.length > 0 && (
                                         <div>
-                                            <strong>Files Selesai:</strong>
+                                            <strong>File Final:</strong>
                                             <ul>
                                                 {detailTransaksi.files_selesai.map((file) => (
                                                     <li key={file.id}>
@@ -470,6 +460,7 @@ const TransaksiList = () => {
                         </CButton>
                     </CModalFooter>
                 </CModal>
+
                 {/* Modal Konfrimasi Ambil */}
                 <CModal visible={ambilModalVisible} onClose={() => setAmbilModalVisible(false)}>
                     <CModalHeader>

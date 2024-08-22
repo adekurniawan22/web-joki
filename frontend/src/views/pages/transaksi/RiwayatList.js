@@ -315,7 +315,7 @@ const RiwayatList = () => {
                                     <strong>No. Transaksi:</strong> JOKI-{detailTransaksi.id}
                                 </p>
                                 <p>
-                                    <strong>Created By:</strong> {detailTransaksi.creator.nama}
+                                    <strong>Dibuat Oleh:</strong> {detailTransaksi.creator.nama}
                                 </p>
                                 <p>
                                     <strong>Tipe:</strong> {detailTransaksi.tipe}
@@ -340,7 +340,7 @@ const RiwayatList = () => {
                                 </p>
                                 {detailTransaksi.take_by ? (
                                     <p>
-                                        <strong>Take By:</strong> {detailTransaksi.taker.nama}
+                                        <strong>Diambil Oleh:</strong> {detailTransaksi.taker.nama}
                                     </p>
                                 ) : (
                                     ''
@@ -354,7 +354,7 @@ const RiwayatList = () => {
                                 </p>
                                 {detailTransaksi.files && detailTransaksi.files.length > 0 && (
                                     <div>
-                                        <strong>Files:</strong>
+                                        <strong>File Transaksi:</strong>
                                         <ul>
                                             {detailTransaksi.files.map((file) => (
                                                 <li key={file.id}>
@@ -381,7 +381,7 @@ const RiwayatList = () => {
                                 {detailTransaksi.files_selesai &&
                                     detailTransaksi.files_selesai.length > 0 && (
                                         <div>
-                                            <strong>Files Selesai:</strong>
+                                            <strong>File Final:</strong>
                                             <ul>
                                                 {detailTransaksi.files_selesai.map((file) => (
                                                     <li key={file.id}>

@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { Formik, Field, Form, ErrorMessage } from 'formik'
-import * as yup from 'yup'
-import axiosInstance from '../../../axiosConfig'
-import { NumericFormat } from 'react-number-format'
 import { CCol, CRow, CButton, CCard, CCardHeader, CCardBody } from '@coreui/react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import config from '../../../config'
+import { NumericFormat } from 'react-number-format'
 import { toast } from 'react-toastify'
 import { Col, Row, Form as BootstrapForm } from 'react-bootstrap'
 import Select from 'react-select'
+import * as yup from 'yup'
+import { Formik, Field, Form, ErrorMessage } from 'formik'
+import config from '../../../config'
+import axiosInstance from '../../../axiosConfig'
 
-// Validasi harga diubah dari string menjadi number
 const getValidationSchema = (showAdditionalFields, status) => {
     return yup.object().shape({
         tipe: yup.string().required('Tipe tugas harus dipilih'),
@@ -57,16 +56,15 @@ const getValidationSchema = (showAdditionalFields, status) => {
                                       'image/jpeg',
                                       'image/jpg',
                                       'image/png',
-                                      'video/mp4', // .mp4
-                                      'audio/mpeg', // .mp3
-                                      'application/javascript', // .js
-                                      'text/x-python', // .py
-                                      'text/html', // .html
-                                      'text/css', // .css
+                                      'video/mp4',
+                                      'audio/mpeg',
+                                      'application/javascript',
+                                      'text/x-python',
+                                      'text/html',
+                                      'text/css',
                                   ]
                                   return (
                                       allowedTypes.includes(value.type) ||
-                                      // Validate by file extension if MIME type is not available
                                       ['.js', '.py', '.html', '.css'].some((ext) =>
                                           value.name.endsWith(ext),
                                       )
@@ -80,29 +78,10 @@ const getValidationSchema = (showAdditionalFields, status) => {
 }
 
 const FormTambahTransaksi = () => {
-    const [users, setUsers] = useState([]) // State for users
-
-    // Fetch users (example URL, adjust as needed)
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await axiosInstance.get(`${config.apiUrl}/users`)
-                // Filter users based on role
-                const filteredUsers = response.data
-                    .filter((user) => user.role === 'penjoki') // Filter users with role 'penjoki'
-                    .map((user) => ({ value: user.id, label: user.nama })) // Map to the desired format
-                setUsers(filteredUsers)
-            } catch (error) {
-                console.error('Error fetching users:', error)
-            }
-        }
-        fetchUsers()
-    }, [])
-
     const navigate = useNavigate()
+    const [users, setUsers] = useState([])
     const [showAdditionalFields, setShowAdditionalFields] = useState(false)
     const [status, setStatus] = useState('')
-
     const initialValues = {
         tipe: '',
         judul: '',
@@ -112,16 +91,28 @@ const FormTambahTransaksi = () => {
         status: '',
         harga: '',
         created_by: '',
-        tambahan: [{ keterangan: '', file: null }], // Initial state for additional fields
+        tambahan: [{ keterangan: '', file: null }],
         take_by: null,
     }
 
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axiosInstance.get(`${config.apiUrl}/users`)
+                const filteredUsers = response.data
+                    .filter((user) => user.role === 'penjoki')
+                    .map((user) => ({ value: user.id, label: user.nama }))
+                setUsers(filteredUsers)
+            } catch (error) {
+                console.error('Error fetching users:', error)
+            }
+        }
+        fetchUsers()
+    }, [])
+
     const handleSubmit = async (values) => {
         try {
-            // Konversi harga
             const hargaInteger = parseInt(values.harga.replace(/[^0-9]/g, ''), 10)
-
-            // Kirim data transaksi
             const response = await axiosInstance.post(
                 `${config.apiUrl}/transaksi`,
                 {
@@ -142,7 +133,6 @@ const FormTambahTransaksi = () => {
             )
             toast.success('Data berhasil ditambahkan!')
 
-            // Kirim file jika ada
             for (const item of values.tambahan) {
                 if (item.file) {
                     const formData = new FormData()
@@ -150,7 +140,6 @@ const FormTambahTransaksi = () => {
                     formData.append('keterangan', item.keterangan)
                     formData.append('file', item.file)
 
-                    // Kirim data file
                     await axiosInstance.post(`${config.apiUrl}/file-transaksi`, formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data',
@@ -256,7 +245,7 @@ const FormTambahTransaksi = () => {
                                             </BootstrapForm.Group>
                                         </div>
 
-                                        {/* Tanggal Terima */}
+                                        {/* Tanggal Terima dan Tanggal Selesai */}
                                         <Row className="mb-3">
                                             <Col md="6">
                                                 <div className="mb-3">
@@ -347,14 +336,15 @@ const FormTambahTransaksi = () => {
                                             </BootstrapForm.Group>
                                         </div>
 
-                                        {/* User Select (conditionally rendered) */}
+                                        {/* Pilih Penjoki */}
                                         {(status === 'dikerjakan' || status === 'selesai') && (
                                             <div className="mb-3">
                                                 <BootstrapForm.Group controlId="validationFormikUser">
                                                     <BootstrapForm.Label>
-                                                        Take By
+                                                        Pilih Penjoki
                                                     </BootstrapForm.Label>
                                                     <Select
+                                                        placeholder="Pilih Penjoki"
                                                         options={users}
                                                         onChange={(option) =>
                                                             setFieldValue('take_by', option)
@@ -369,20 +359,17 @@ const FormTambahTransaksi = () => {
                                                             name="take_by"
                                                             component="div"
                                                             className="invalid-feedback"
-                                                            // Use the `render` prop to customize the error message
                                                             render={(msg) => {
-                                                                // Customize error message if it's the specific one
                                                                 if (
                                                                     msg === `take_by cannot be null`
                                                                 ) {
                                                                     return (
                                                                         <div>
-                                                                            Take By tidak boleh
+                                                                            Penjoki tidak boleh
                                                                             kosong
                                                                         </div>
                                                                     )
                                                                 }
-                                                                // Default rendering for other errors
                                                                 return <div>{msg}</div>
                                                             }}
                                                         />
@@ -460,12 +447,12 @@ const FormTambahTransaksi = () => {
                                                         ])
                                                     }}
                                                 >
-                                                    Tambah Input
+                                                    Tambah File
                                                 </CButton>
                                                 <div className="row">
                                                     {values.tambahan.map((item, index) => (
                                                         <div key={index} className="col-6 mb-3">
-                                                            <div className="row bg-secondary mx-0 py-3 rounded">
+                                                            <div className="row bg-light mx-0 py-3 rounded">
                                                                 <div className="col-12 mb-2">
                                                                     <BootstrapForm.Group
                                                                         controlId={`keterangan-${index}`}
@@ -474,6 +461,7 @@ const FormTambahTransaksi = () => {
                                                                             Keterangan
                                                                         </BootstrapForm.Label>
                                                                         <Field
+                                                                            placeholder="Keterangan"
                                                                             type="text"
                                                                             name={`tambahan.${index}.keterangan`}
                                                                             className={`form-control ${touched.tambahan && touched.tambahan[index]?.keterangan && errors.tambahan && errors.tambahan[index]?.keterangan ? 'is-invalid' : ''}`}
@@ -494,7 +482,6 @@ const FormTambahTransaksi = () => {
                                                                         </BootstrapForm.Label>
                                                                         <input
                                                                             type="file"
-                                                                            accept="image/*"
                                                                             onChange={(event) => {
                                                                                 const file =
                                                                                     event
@@ -515,8 +502,9 @@ const FormTambahTransaksi = () => {
                                                                     </BootstrapForm.Group>
                                                                 </div>
                                                                 {values.tambahan.length > 1 && (
-                                                                    <div className="col-12 mt-2">
+                                                                    <div className="col-12 mt-3">
                                                                         <CButton
+                                                                            className="w-100 text-light"
                                                                             type="button"
                                                                             color="danger"
                                                                             onClick={() => {

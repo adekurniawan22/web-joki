@@ -1,21 +1,19 @@
-import React, { useState, useEffect } from 'react'
-import { Formik, Field, Form, ErrorMessage } from 'formik'
-import * as yup from 'yup'
-import axiosInstance from '../../../axiosConfig'
-import { NumericFormat } from 'react-number-format'
 import { CCol, CRow, CButton, CCard, CCardHeader, CCardBody } from '@coreui/react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import config from '../../../config'
+import { NumericFormat } from 'react-number-format'
 import { toast } from 'react-toastify'
 import { Col, Row, Form as BootstrapForm } from 'react-bootstrap'
 import Select from 'react-select'
+import * as yup from 'yup'
+import { Formik, Field, Form, ErrorMessage } from 'formik'
+import config from '../../../config'
+import axiosInstance from '../../../axiosConfig'
 
-// Utility function to convert ISO date to YYYY-MM-DD
 const isoToDateString = (isoString) => {
     return isoString ? isoString.split('T')[0] : ''
 }
 
-// Utility function to convert YYYY-MM-DD to ISO date
 const dateStringToISO = (dateString) => {
     return dateString ? new Date(dateString).toISOString() : ''
 }
@@ -50,11 +48,9 @@ const getValidationSchema = (showAdditionalFields, status) => {
                               'Hanya file gambar jpg, jpeg, dan png yang diizinkan',
                               function (value) {
                                   const { id } = this.parent
-                                  // Return true if id is not null to skip this validation
                                   if (id) {
                                       return true
                                   }
-                                  // Check if the file type is valid when id is null
                                   return value
                                       ? [
                                             'application/pdf',
@@ -71,14 +67,13 @@ const getValidationSchema = (showAdditionalFields, status) => {
                                             'image/jpeg',
                                             'image/jpg',
                                             'image/png',
-                                            'video/mp4', // .mp4
-                                            'audio/mpeg', // .mp3
-                                            'application/javascript', // .js
-                                            'text/x-python', // .py
-                                            'text/html', // .html
-                                            'text/css', // .css
+                                            'video/mp4',
+                                            'audio/mpeg',
+                                            'application/javascript',
+                                            'text/x-python',
+                                            'text/html',
+                                            'text/css',
                                         ].includes(value.type) ||
-                                            // Validate by file extension if MIME type is not available
                                             [
                                                 '.js',
                                                 '.py',
@@ -103,12 +98,10 @@ const getValidationSchema = (showAdditionalFields, status) => {
                           )
                           .test('required', 'File tidak boleh kosong', function (value) {
                               const { id } = this.parent
-                              // Return true if id is not null to skip this validation
                               if (id) {
                                   return true
                               }
 
-                              // Check if file is provided when id is null
                               return value !== null && value !== undefined
                           }),
                   }),
@@ -132,59 +125,60 @@ const EditTransaksi = () => {
         status: '',
         harga: '',
         created_by: '',
+        take_by: null,
         tambahan: [{ id: null, keterangan: '', file: null }],
+        selesai: [{ id: null, keterangan: '', file: null }],
     })
 
+    const fetchTransaksi = async () => {
+        try {
+            const response = await axiosInstance.get(`${config.apiUrl}/transaksi/${id}`)
+            const data = response.data
+            const tglTerima = isoToDateString(data.tgl_terima)
+            const tglSelesai = isoToDateString(data.tgl_selesai)
+
+            // Set initial values
+            setInitialValues({
+                tipe: data.tipe,
+                judul: data.judul,
+                deskripsi: data.deskripsi,
+                tgl_terima: tglTerima,
+                tgl_selesai: tglSelesai,
+                status: data.status,
+                harga: data.harga,
+                created_by: data.created_by,
+                take_by: data.take_by ? { value: data.take_by, label: data.take_by_label } : null,
+                tambahan: data.files.map((file) => ({
+                    keterangan: file.keterangan,
+                    file: file.file ? file.file : null,
+                    id: file.id ? file.id : null,
+                })),
+                selesai: data.files_selesai.map((file) => ({
+                    keterangan: file.keterangan,
+                    file: file.file ? file.file : null,
+                    id: file.id ? file.id : null,
+                })),
+            })
+
+            setShowAdditionalFields(data.files && data.files.length > 0)
+        } catch (error) {
+            toast.error('Terjadi kesalahan saat memuat data.')
+        }
+    }
+
     useEffect(() => {
-        // Fetch users for select options
         const fetchUsers = async () => {
             try {
                 const response = await axiosInstance.get(`${config.apiUrl}/users`)
-                // Filter users based on role and map to desired format
                 const filteredUsers = response.data
-                    .filter((user) => user.role === 'penjoki') // Filter users with role 'penjoki'
+                    .filter((user) => user.role === 'penjoki')
                     .map((user) => ({
                         value: user.id,
                         label: user.nama,
-                    })) // Map to the desired format
+                    }))
                 setUsers(filteredUsers)
             } catch (error) {
                 toast.error('Terjadi kesalahan saat memuat data pengguna.')
-            }
-        }
-
-        // Fetch transaction data
-        const fetchTransaksi = async () => {
-            try {
-                const response = await axiosInstance.get(`${config.apiUrl}/transaksi/${id}`)
-                const data = response.data
-
-                // Convert dates
-                const tglTerima = isoToDateString(data.tgl_terima)
-                const tglSelesai = isoToDateString(data.tgl_selesai)
-
-                // Set initial values
-                setInitialValues({
-                    tipe: data.tipe,
-                    judul: data.judul,
-                    deskripsi: data.deskripsi,
-                    tgl_terima: tglTerima,
-                    tgl_selesai: tglSelesai,
-                    status: data.status,
-                    harga: data.harga,
-                    created_by: data.created_by,
-                    take_by: data.take_by,
-                    tambahan: data.files.map((file) => ({
-                        keterangan: file.keterangan,
-                        file: file.file ? file.file : null,
-                        id: file.id ? file.id : null,
-                    })),
-                })
-
-                // Set checkbox state
-                setShowAdditionalFields(data.files && data.files.length > 0)
-            } catch (error) {
-                toast.error('Terjadi kesalahan saat memuat data.')
             }
         }
 
@@ -194,10 +188,8 @@ const EditTransaksi = () => {
 
     const handleSubmit = async (values) => {
         try {
-            // Konversi harga
             const hargaInteger = parseInt(values.harga.replace(/[^0-9]/g, ''), 10)
 
-            // Konversi tanggal ke format ISO 8601, termasuk menangani tgl_selesai
             const updatedValues = {
                 ...values,
                 take_by:
@@ -209,21 +201,18 @@ const EditTransaksi = () => {
                 harga: hargaInteger,
             }
 
-            // Kirim data transaksi
             await axiosInstance.put(`${config.apiUrl}/transaksi/${id}`, updatedValues, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
             })
 
-            // Kirim file jika ada
             for (const item of values.tambahan) {
                 if (item.file) {
                     const formData = new FormData()
                     formData.append('keterangan', item.keterangan)
 
                     if (item.id) {
-                        // Jika item.id ada, kirim hanya keterangan dengan header Content-Type: 'application/json'
                         await axiosInstance.post(
                             `${config.apiUrl}/file-transaksi/${item.id}?_method=PUT`,
                             formData,
@@ -234,7 +223,6 @@ const EditTransaksi = () => {
                             },
                         )
                     } else {
-                        // Jika item.id tidak ada, kirim id_transaksi, keterangan, dan file dengan header Content-Type: 'multipart/form-data'
                         formData.append('id_transaksi', id)
                         formData.append('file', item.file)
 
@@ -263,6 +251,16 @@ const EditTransaksi = () => {
         }
     }
 
+    const handleDeleteFileSelesai = async (itemId) => {
+        try {
+            await axiosInstance.delete(`${config.apiUrl}/file-transaksi-selesai/${itemId}`)
+            fetchTransaksi()
+            toast.success('File berhasil dihapus!')
+        } catch (error) {
+            toast.error('Terjadi kesalahan saat menghapus file.')
+        }
+    }
+
     return (
         <Formik
             initialValues={initialValues}
@@ -271,10 +269,9 @@ const EditTransaksi = () => {
             enableReinitialize
         >
             {({ touched, errors, setFieldValue, isSubmitting, values }) => {
-                console.log('initialValues:', initialValues.take_by)
                 return (
                     <CRow>
-                        <CCol xs={12}>
+                        <CCol xs={values.selesai.length > 0 ? 8 : 12}>
                             <CCard className="mb-4">
                                 <CCardHeader>
                                     <strong>Edit Transaksi</strong>
@@ -421,7 +418,7 @@ const EditTransaksi = () => {
                                                     name="status"
                                                     className={`form-control ${touched.status && errors.status ? 'is-invalid' : ''} ${touched.status && !errors.status && !isSubmitting ? 'is-valid' : ''}`}
                                                     onChange={(e) => {
-                                                        setStatus(e.target.value) // Update status state
+                                                        setStatus(e.target.value)
                                                         setFieldValue('status', e.target.value)
                                                     }}
                                                 >
@@ -445,15 +442,16 @@ const EditTransaksi = () => {
                                             </BootstrapForm.Group>
                                         </div>
 
-                                        {/* User Select (conditionally rendered) */}
+                                        {/* Pilih Penjoki */}
                                         {(values.status === 'dikerjakan' ||
                                             values.status === 'selesai') && (
                                             <div className="mb-3">
                                                 <BootstrapForm.Group controlId="validationFormikUser">
                                                     <BootstrapForm.Label>
-                                                        Take By
+                                                        Pilih Penjoki
                                                     </BootstrapForm.Label>
                                                     <Select
+                                                        placeholder="Pilih Penjoki"
                                                         options={users}
                                                         onChange={(option) =>
                                                             setFieldValue('take_by', option)
@@ -463,7 +461,7 @@ const EditTransaksi = () => {
                                                                 ? users.find(
                                                                       (user) =>
                                                                           user.value ===
-                                                                          values.take_by,
+                                                                          values.take_by.value,
                                                                   )
                                                                 : null
                                                         }
@@ -476,20 +474,17 @@ const EditTransaksi = () => {
                                                             name="take_by"
                                                             component="div"
                                                             className="invalid-feedback"
-                                                            // Use the `render` prop to customize the error message
                                                             render={(msg) => {
-                                                                // Customize error message if it's the specific one
                                                                 if (
                                                                     msg === `take_by cannot be null`
                                                                 ) {
                                                                     return (
                                                                         <div>
-                                                                            Take By tidak boleh
+                                                                            Penjoki tidak boleh
                                                                             kosong
                                                                         </div>
                                                                     )
                                                                 }
-                                                                // Default rendering for other errors
                                                                 return <div>{msg}</div>
                                                             }}
                                                         />
@@ -552,6 +547,23 @@ const EditTransaksi = () => {
                                         {/* Conditionally render additional fields */}
                                         {showAdditionalFields && (
                                             <div className="mb-3">
+                                                <CButton
+                                                    className="mb-3"
+                                                    type="button"
+                                                    color="primary"
+                                                    onClick={() => {
+                                                        setFieldValue('tambahan', [
+                                                            ...values.tambahan,
+                                                            {
+                                                                id: null,
+                                                                keterangan: '',
+                                                                file: null,
+                                                            },
+                                                        ])
+                                                    }}
+                                                >
+                                                    Tambah File
+                                                </CButton>
                                                 <div className="row">
                                                     {values.tambahan.map((item, index) => (
                                                         <div key={index} className="col-6 mb-3">
@@ -564,6 +576,7 @@ const EditTransaksi = () => {
                                                                             Keterangan
                                                                         </BootstrapForm.Label>
                                                                         <Field
+                                                                            placeholder="Keterangan"
                                                                             type="text"
                                                                             name={`tambahan.${index}.keterangan`}
                                                                             className={`form-control ${touched.tambahan && touched.tambahan[index]?.keterangan && errors.tambahan && errors.tambahan[index]?.keterangan ? 'is-invalid' : ''}`}
@@ -608,7 +621,6 @@ const EditTransaksi = () => {
                                                                         ) : (
                                                                             <input
                                                                                 type="file"
-                                                                                accept="image/*"
                                                                                 onChange={(
                                                                                     event,
                                                                                 ) => {
@@ -631,9 +643,7 @@ const EditTransaksi = () => {
                                                                                 name={`tambahan.${index}.file`}
                                                                                 component="div"
                                                                                 className="invalid-feedback"
-                                                                                // Use the `render` prop to customize the error message
                                                                                 render={(msg) => {
-                                                                                    // Customize error message if it's the specific one
                                                                                     if (
                                                                                         msg ===
                                                                                         `tambahan[${index}].file cannot be null`
@@ -647,7 +657,6 @@ const EditTransaksi = () => {
                                                                                             </div>
                                                                                         )
                                                                                     }
-                                                                                    // Default rendering for other errors
                                                                                     return (
                                                                                         <div>
                                                                                             {msg}
@@ -660,7 +669,7 @@ const EditTransaksi = () => {
                                                                 </div>
                                                                 {(item.id ||
                                                                     values.tambahan.length > 1) && (
-                                                                    <div className="col-12 mt-2">
+                                                                    <div className="col-12 mt-3">
                                                                         <CButton
                                                                             type="button"
                                                                             color="danger"
@@ -691,23 +700,6 @@ const EditTransaksi = () => {
                                                         </div>
                                                     ))}
                                                 </div>
-                                                <CButton
-                                                    className="mY-3"
-                                                    type="button"
-                                                    color="primary"
-                                                    onClick={() => {
-                                                        setFieldValue('tambahan', [
-                                                            ...values.tambahan,
-                                                            {
-                                                                id: null,
-                                                                keterangan: '',
-                                                                file: null,
-                                                            },
-                                                        ])
-                                                    }}
-                                                >
-                                                    Tambah Input
-                                                </CButton>
                                             </div>
                                         )}
 
@@ -727,6 +719,76 @@ const EditTransaksi = () => {
                                 </CCardBody>
                             </CCard>
                         </CCol>
+                        {initialValues.selesai.length > 0 && (
+                            <CCol xs={4}>
+                                <CCard className="mb-4">
+                                    <CCardHeader>
+                                        <strong>File Final</strong>
+                                    </CCardHeader>
+                                    <CCardBody>
+                                        <div className="row">
+                                            {values.selesai.map((item, index) => (
+                                                <div className="col-12 mb-3">
+                                                    <div className="row bg-light mx-0 py-3 rounded">
+                                                        <div className="col-12 mb-2">
+                                                            <strong>Keterangan : </strong>
+                                                            <span>{item.keterangan}</span>
+                                                            <p></p>
+                                                            <strong>File : </strong>
+                                                            <span>
+                                                                <a
+                                                                    href={`${config.apiBiasa}/storage/${item.file}`}
+                                                                    target="_blank"
+                                                                    className="mb-2"
+                                                                    rel="noopener noreferrer"
+                                                                    style={{
+                                                                        display: 'block',
+                                                                        overflow: 'hidden',
+                                                                        textOverflow: 'ellipsis',
+                                                                        maxWidth: '100%',
+                                                                        overflowWrap: 'break-word',
+                                                                    }}
+                                                                >
+                                                                    {item.file}
+                                                                </a>
+                                                            </span>
+                                                        </div>
+
+                                                        {(item.id || values.selesai.length > 1) && (
+                                                            <div className="col-12 mt-3">
+                                                                <CButton
+                                                                    type="button"
+                                                                    color="danger"
+                                                                    className="w-100 text-light"
+                                                                    onClick={() => {
+                                                                        if (item.id) {
+                                                                            handleDeleteFileSelesai(
+                                                                                item.id,
+                                                                            )
+                                                                        }
+                                                                        const newAdditionalFields =
+                                                                            values.selesai.filter(
+                                                                                (_, idx) =>
+                                                                                    idx !== index,
+                                                                            )
+                                                                        setFieldValue(
+                                                                            'selesai',
+                                                                            newAdditionalFields,
+                                                                        )
+                                                                    }}
+                                                                >
+                                                                    Hapus
+                                                                </CButton>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CCardBody>
+                                </CCard>
+                            </CCol>
+                        )}
                     </CRow>
                 )
             }}
