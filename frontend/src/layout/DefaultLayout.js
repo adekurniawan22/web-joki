@@ -39,6 +39,7 @@ const DefaultLayout = () => {
                         localStorage.removeItem('role')
                         localStorage.removeItem('expires_at')
                         // Redirect to login page
+                        toast.success('Berhasil Logout!')
                         navigate('/login')
                     }
                 }

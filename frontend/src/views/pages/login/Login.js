@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
@@ -19,29 +19,30 @@ import { ToastContainer, toast } from 'react-toastify'
 import { cilLockLocked, cilUser } from '@coreui/icons'
 import config from '../../../config'
 import banner from './../../../../src/assets/images/banner.png'
+import { Formik } from 'formik'
+import * as Yup from 'yup'
+
+const validationSchema = Yup.object().shape({
+    email: Yup.string().email('Email tidak valid').required('Email wajib diisi'),
+    password: Yup.string().required('Password wajib diisi'),
+})
 
 const Login = () => {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState(null)
     const navigate = useNavigate()
 
-    // Cek role di localStorage dan arahkan ke dashboard jika ada
     useEffect(() => {
         if (localStorage.getItem('role')) {
             navigate('/dashboard')
         }
     }, [navigate])
 
-    const handleLogin = async (e) => {
-        e.preventDefault()
-
+    const handleLogin = async (values, { setSubmitting, setFieldError }) => {
         try {
             const response = await axios.post(
                 `${config.apiUrl}/login`,
                 {
-                    email,
-                    password,
+                    email: values.email,
+                    password: values.password,
                 },
                 {
                     headers: {
@@ -51,8 +52,6 @@ const Login = () => {
             )
 
             const data = response.data
-
-            // Simpan token dan role di localStorage
             localStorage.setItem('user_id', data.user_id)
             localStorage.setItem('token', data.token)
             localStorage.setItem('role', data.role)
@@ -61,14 +60,13 @@ const Login = () => {
             navigate('/dashboard')
         } catch (err) {
             if (err.response) {
-                // Jika server memberi respons dengan status kode yang tidak berada dalam rentang 2xx
-                setError(err.response.data.message || 'Login failed')
-                toast.error('Gagal Login!')
+                setFieldError('general', err.response.data.message || 'Login gagal')
             } else {
-                // Terjadi kesalahan saat mengatur permintaan
+                setFieldError('general', 'Terjadi kesalahan. Silakan coba lagi.')
                 toast.error('Gagal Login!')
-                setError('An error occurred. Please try again.')
             }
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -80,48 +78,91 @@ const Login = () => {
                         <CCardGroup>
                             <CCard className="p-4">
                                 <CCardBody>
-                                    <CForm onSubmit={handleLogin}>
-                                        <h1>Login</h1>
-                                        <p className="text-body-secondary">
-                                            Sign In to your account
-                                        </p>
-                                        {error && <p className="text-danger">{error}</p>}
-                                        <CInputGroup className="mb-3">
-                                            <CInputGroupText>
-                                                <CIcon icon={cilUser} />
-                                            </CInputGroupText>
-                                            <CFormInput
-                                                type="email"
-                                                placeholder="Email"
-                                                autoComplete="username"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                            />
-                                        </CInputGroup>
-                                        <CInputGroup className="mb-4">
-                                            <CInputGroupText>
-                                                <CIcon icon={cilLockLocked} />
-                                            </CInputGroupText>
-                                            <CFormInput
-                                                type="password"
-                                                placeholder="Password"
-                                                autoComplete="current-password"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                            />
-                                        </CInputGroup>
-                                        <CRow>
-                                            <CCol xs={12}>
-                                                <CButton
-                                                    color="primary"
-                                                    className="px-4 w-100"
-                                                    type="submit"
-                                                >
-                                                    Login
-                                                </CButton>
-                                            </CCol>
-                                        </CRow>
-                                    </CForm>
+                                    <Formik
+                                        initialValues={{ email: '', password: '' }}
+                                        validationSchema={validationSchema}
+                                        onSubmit={handleLogin}
+                                    >
+                                        {({
+                                            values,
+                                            errors,
+                                            touched,
+                                            handleChange,
+                                            handleBlur,
+                                            handleSubmit,
+                                            isSubmitting,
+                                        }) => (
+                                            <CForm onSubmit={handleSubmit}>
+                                                <h1>Login</h1>
+                                                <p className="text-body-secondary">
+                                                    Masuk ke akun anda
+                                                </p>
+                                                {errors.general && (
+                                                    <p className="text-danger">{errors.general}</p>
+                                                )}
+                                                <CInputGroup className="mb-3">
+                                                    <CInputGroupText>
+                                                        <CIcon icon={cilUser} />
+                                                    </CInputGroupText>
+                                                    <CFormInput
+                                                        type="email"
+                                                        name="email"
+                                                        placeholder="Email"
+                                                        autoComplete="username"
+                                                        value={values.email}
+                                                        onChange={handleChange}
+                                                        onBlur={handleBlur}
+                                                        className={
+                                                            touched.email && errors.email
+                                                                ? 'is-invalid'
+                                                                : null
+                                                        }
+                                                    />
+                                                    {touched.email && errors.email ? (
+                                                        <div className="invalid-feedback">
+                                                            {errors.email}
+                                                        </div>
+                                                    ) : null}
+                                                </CInputGroup>
+                                                <CInputGroup className="mb-4">
+                                                    <CInputGroupText>
+                                                        <CIcon icon={cilLockLocked} />
+                                                    </CInputGroupText>
+                                                    <CFormInput
+                                                        type="password"
+                                                        name="password"
+                                                        placeholder="Password"
+                                                        autoComplete="current-password"
+                                                        value={values.password}
+                                                        onChange={handleChange}
+                                                        onBlur={handleBlur}
+                                                        className={
+                                                            touched.password && errors.password
+                                                                ? 'is-invalid'
+                                                                : null
+                                                        }
+                                                    />
+                                                    {touched.password && errors.password ? (
+                                                        <div className="invalid-feedback">
+                                                            {errors.password}
+                                                        </div>
+                                                    ) : null}
+                                                </CInputGroup>
+                                                <CRow>
+                                                    <CCol xs={12}>
+                                                        <CButton
+                                                            color="primary"
+                                                            className="px-4 w-100"
+                                                            type="submit"
+                                                            disabled={isSubmitting}
+                                                        >
+                                                            Login
+                                                        </CButton>
+                                                    </CCol>
+                                                </CRow>
+                                            </CForm>
+                                        )}
+                                    </Formik>
                                 </CCardBody>
                             </CCard>
                             <CCard

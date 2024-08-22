@@ -24,8 +24,12 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'Email Tidak Terdaftar'], 401);
+        } else {
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json(['message' => 'Password Salah'], 401);
+            }
         }
 
         // Hapus token lama jika ada
